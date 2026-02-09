@@ -1,50 +1,52 @@
 # pi-read-map
 
-A pi extension that adds structural file maps for large files. When reading files that exceed the truncation threshold (2,000 lines or 50 KB), this extension generates a structural map of the entire file alongside the initial content, enabling precise, targeted reads instead of sequential scanning.
+This pi extension augments the built-in `read` tool with structural file maps. When you open a file larger than 2,000 lines or 50 KB, the extension generates a map of every symbol and its line range. You navigate large codebases precisely instead of scanning sequentially.
 
-## Features
+## Why This Exists
 
-- **Structural File Maps**: Automatically generates maps showing symbols, classes, functions, and their line ranges
-- **Language Support**: TypeScript, JavaScript, Python, Go, Rust, C, C++, SQL, JSON, YAML, TOML, CSV, Markdown
-- **Smart Truncation**: Maps compress to ~3-5% of original file size (e.g., 400 KB file → ~18 KB map)
-- **Budget Enforcement**: Progressive detail reduction ensures maps stay under 20 KB
-- **Caching**: In-memory caching by file path + mtime for fast re-reads
-- **Graceful Fallback**: Grep-based heuristics for unsupported file types
+**The problem:** pi sees only the first 2,000 lines of a 50,000-line source file. Ask "how does the type checker handle unions?" and the model either hallucinates or burns tokens re-reading until it finds the answer.
+
+**The trade-off:** `pi-read-map` spends ~2,000–10,000 tokens upfront to generate a map of the entire file. The extension triggers only for files exceeding the truncation limit (>2,000 lines and >50 KB); smaller files pass through unchanged.
+
+**The payoff:** The map stays in context. Ask "show me the merge implementation," "compare error handling in these three functions," or "what symbols exist after line 40,000?" without re-reading. The investment pays for itself when you analyze a large file beyond a single summary.
+
+## Demo
+
+See `pi-read-map` in action analyzing the TypeScript compiler's 54,000-line type checker:
+
+https://github.com/Whamp/pi-read-map/releases/download/demo-assets/screenrecording-2026-02-09_12-06-01.mp4
+
+## What It Does
+
+- **Generates structural maps** showing symbols, classes, functions, and their exact line ranges
+- **Supports 16 languages** through specialized parsers: TypeScript, JavaScript, Python, Go, Rust, C, C++, SQL, JSON, JSONL, YAML, TOML, CSV, Markdown
+- **Compresses aggressively** to ~3-5% of original file size (a 400 KB file yields an ~18 KB map)
+- **Enforces a 20 KB budget** through progressive detail reduction
+- **Caches maps** in memory by file path and modification time for instant re-reads
+- **Falls back** from language-specific parsers to ctags to grep heuristics
 
 ## Installation
 
-### Option 1: Global Installation (Recommended)
-
-Install the extension for use across all projects:
+### Global (Recommended)
 
 ```bash
-# Clone the repository
 git clone <repository-url> ~/.pi/agent/extensions/pi-read-map
-
-# Install dependencies
 cd ~/.pi/agent/extensions/pi-read-map
 npm install
 ```
 
-The extension will be auto-discovered by pi on next start or via `/reload`.
+pi discovers the extension automatically on start or via `/reload`.
 
-### Option 2: Project-Local Installation
-
-Install the extension for a specific project only:
+### Project-Local
 
 ```bash
-# From your project root
 mkdir -p .pi/extensions
 git clone <repository-url> .pi/extensions/pi-read-map
-
-# Install dependencies
 cd .pi/extensions/pi-read-map
 npm install
 ```
 
-### Option 3: Quick Test (One-off)
-
-Test the extension without installing:
+### One-off Test
 
 ```bash
 pi -e ./path/to/pi-read-map/src/index.ts
@@ -52,21 +54,15 @@ pi -e ./path/to/pi-read-map/src/index.ts
 
 ## Verification
 
-After installation, verify the extension is loaded:
+Start pi or run `/reload`. Then read a large file:
 
-1. Start pi or run `/reload` in an existing session
-2. The extension registers an enhanced `read` tool
-3. Read a large file (over 2,000 lines or 50 KB) to see the map in action
-
-Example:
 ```
 read path/to/large-file.ts
 ```
 
-Output will include:
-```
-[Content of first 2,000 lines...]
+Output includes the truncated content followed by:
 
+```
 [Truncated: showing first 2000 lines of 10,247 (50 KB of 412 KB)]
 ───────────────────────────────────────
 File Map: path/to/large-file.ts
@@ -86,90 +82,86 @@ Use read(path, offset=LINE, limit=N) for targeted reads.
 
 ## Development
 
-### Scripts
-
 ```bash
-# Type checking
-npm run typecheck
-
-# Linting
-npm run lint
-npm run lint:fix
-
-# Formatting
-npm run format
-npm run format:check
-
-# Run all validation
-npm run validate
-
-# Tests
-npm run test
-npm run test:watch
-npm run test:integration
-npm run test:e2e
-
-# Benchmarks
-npm run bench
+npm run typecheck      # Type checking
+npm run lint           # Linting with oxlint
+npm run lint:fix       # Auto-fix lint issues
+npm run format         # Format with oxfmt
+npm run format:check   # Check formatting
+npm run validate       # Run all checks
+npm run test           # Unit tests
+npm run test:watch     # Watch mode
+npm run test:integration  # Integration tests
+npm run test:e2e       # End-to-end tests
+npm run bench          # Benchmarks
 ```
 
-### Project Structure
+## Project Structure
 
 ```
 src/
-├── index.ts              # Extension entry point
-├── types.ts              # Shared TypeScript types
-├── enums.ts              # Symbol kinds and detail levels
-├── mapper.ts             # Dispatcher: detect language → mapper
-├── formatter.ts          # Map formatting with budget enforcement
-├── language-detect.ts    # Language detection from file extensions
-└── mappers/              # Language-specific mappers
-    ├── typescript.ts     # TypeScript/JavaScript (ts-morph)
-    ├── python.ts         # Python (ast module subprocess)
-    ├── go.ts             # Go (go/ast subprocess)
-    ├── rust.ts           # Rust (tree-sitter)
-    ├── cpp.ts             # C/C++ (tree-sitter)
-    ├── c.ts              # C (regex patterns)
-    ├── sql.ts            # SQL (regex)
-    ├── json.ts           # JSON (jq subprocess)
-    ├── yaml.ts           # YAML (regex)
-    ├── toml.ts           # TOML (regex)
-    ├── csv.ts            # CSV/TSV (in-process)
-    ├── markdown.ts       # Markdown (regex)
+├── index.ts              # Extension entry: tool registration, caching, messages
+├── mapper.ts             # Dispatcher: routes files to language mappers
+├── formatter.ts          # Budget-aware formatting with detail reduction
+├── language-detect.ts    # Maps file extensions to languages
+├── types.ts              # Shared interfaces (FileMap, FileSymbol)
+├── enums.ts              # SymbolKind, DetailLevel
+├── constants.ts          # Thresholds (2,000 lines, 50 KB, 20 KB budget)
+└── mappers/              # Language-specific parsers
+    ├── typescript.ts     # ts-morph for TS/JS
+    ├── python.ts         # Python AST via subprocess
+    ├── go.ts             # Go AST via subprocess
+    ├── rust.ts           # tree-sitter
+    ├── cpp.ts            # tree-sitter for C/C++
+    ├── c.ts              # Regex patterns
+    ├── sql.ts            # Regex
+    ├── json.ts           # jq subprocess
+    ├── jsonl.ts          # Streaming parser
+    ├── yaml.ts           # Regex
+    ├── toml.ts           # Regex
+    ├── csv.ts            # In-process parser
+    ├── markdown.ts       # Regex
     ├── ctags.ts          # universal-ctags fallback
-    └── fallback.ts       # Grep-based fallback
+    └── fallback.ts       # Grep-based final fallback
+
+scripts/
+├── python_outline.py     # Python AST extraction
+└── go_outline.go         # Go AST extraction (compiles on first use)
+
+tests/
+├── unit/                 # Mapper and utility tests
+├── integration/          # Dispatcher, caching, budget enforcement
+├── e2e/                  # Real pi sessions via tmux
+└── fixtures/             # Sample files per language
 ```
 
 ## How It Works
 
-When the `read` tool is called:
+The extension intercepts `read` calls and decides:
 
-1. **Small files** (≤2,000 lines AND ≤50 KB): Pass through to built-in read tool
-2. **Targeted reads** (offset or limit provided): Pass through to built-in read tool
-3. **Large files**: 
-   - Read first chunk via built-in tool
+1. **Small files** (≤2,000 lines, ≤50 KB): Delegate to built-in read tool
+2. **Targeted reads** (offset or limit provided): Delegate to built-in read tool
+3. **Large files:**
+   - Call built-in read for the first chunk
    - Detect language from file extension
-   - Generate structural map using appropriate mapper
-   - Format map with budget enforcement
-   - Append map to response with navigation guidance
+   - Dispatch to a mapper (language-specific → ctags → grep fallback)
+   - Format with budget enforcement
+   - Cache the map
+   - Send as a separate `file-map` message after `tool_result`
 
 ## Dependencies
 
-**Required npm packages:**
+**npm packages:**
 - `ts-morph` - TypeScript AST analysis
 - `tree-sitter` - Parser framework
 - `tree-sitter-cpp` - C/C++ parsing
 - `tree-sitter-rust` - Rust parsing
 
-**System tools (optional, for specific mappers):**
+**System tools (optional):**
 - `python3` - Python mapper
 - `go` - Go mapper
 - `jq` - JSON mapper
-- `universal-ctags` - Broad language fallback
-
-## Configuration
-
-The extension uses sensible defaults and requires no configuration. Future versions may support per-language enable/disable settings.
+- `universal-ctags` - Language fallback
 
 ## License
 
