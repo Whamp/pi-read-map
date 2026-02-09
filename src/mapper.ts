@@ -3,7 +3,6 @@ import type { FileMap, MapOptions } from "./types.js";
 import { THRESHOLDS } from "./constants.js";
 import { detectLanguage } from "./language-detect.js";
 import { cMapper } from "./mappers/c.js";
-import { codemapMapper } from "./mappers/codemap.js";
 import { cppMapper } from "./mappers/cpp.js";
 import { csvMapper } from "./mappers/csv.js";
 import { ctagsMapper } from "./mappers/ctags.js";
@@ -24,22 +23,9 @@ type MapperFn = (
 ) => Promise<FileMap | null>;
 
 /**
- * Create a mapper with fallback to another mapper.
- */
-function withFallback(primary: MapperFn, fallback: MapperFn): MapperFn {
-  return async (filePath, signal) => {
-    const result = await primary(filePath, signal);
-    if (result) {
-      return result;
-    }
-    return fallback(filePath, signal);
-  };
-}
-
-/**
  * Registry of language-specific mappers.
  *
- * Phase 3: Uses internal tree-sitter/ts-morph mappers with codemap CLI fallback.
+ * Uses internal tree-sitter/ts-morph mappers for all supported languages.
  */
 const MAPPERS: Record<string, MapperFn> = {
   // Phase 1: Python AST-based
@@ -48,17 +34,17 @@ const MAPPERS: Record<string, MapperFn> = {
   // Phase 2: Go AST-based
   go: goMapper,
 
-  // Phase 3: Internal ts-morph with codemap fallback
-  typescript: withFallback(typescriptMapper, codemapMapper),
-  javascript: withFallback(typescriptMapper, codemapMapper),
+  // Phase 3: Internal ts-morph mappers
+  typescript: typescriptMapper,
+  javascript: typescriptMapper,
 
   // Phase 3: Internal regex-based markdown
-  markdown: withFallback(markdownMapper, codemapMapper),
+  markdown: markdownMapper,
 
-  // Phase 3: Internal tree-sitter with codemap fallback
-  rust: withFallback(rustMapper, codemapMapper),
-  cpp: withFallback(cppMapper, codemapMapper),
-  "c-header": withFallback(cppMapper, codemapMapper), // .h files
+  // Phase 3: Internal tree-sitter mappers
+  rust: rustMapper,
+  cpp: cppMapper,
+  "c-header": cppMapper, // .h files
 
   // Phase 2: Regex/subprocess mappers
   sql: sqlMapper,

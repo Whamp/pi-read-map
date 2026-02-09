@@ -128,7 +128,7 @@ src/
     ├── python.ts         # Python (ast module subprocess)
     ├── go.ts             # Go (go/ast subprocess)
     ├── rust.ts           # Rust (tree-sitter)
-    ├── cpp.ts            # C/C++ (tree-sitter)
+    ├── cpp.ts             # C/C++ (tree-sitter)
     ├── c.ts              # C (regex patterns)
     ├── sql.ts            # SQL (regex)
     ├── json.ts           # JSON (jq subprocess)
@@ -136,7 +136,6 @@ src/
     ├── toml.ts           # TOML (regex)
     ├── csv.ts            # CSV/TSV (in-process)
     ├── markdown.ts       # Markdown (regex)
-    ├── codemap.ts        # Codemap CLI fallback
     ├── ctags.ts          # universal-ctags fallback
     └── fallback.ts       # Grep-based fallback
 ```

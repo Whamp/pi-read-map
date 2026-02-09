@@ -2,7 +2,6 @@ import { writeFile, mkdir, rm } from "node:fs/promises";
 import { join } from "node:path";
 import { describe, bench, beforeAll } from "vitest";
 
-import { codemapMapper } from "../../src/mappers/codemap.js";
 import { cppMapper } from "../../src/mappers/cpp.js";
 import { markdownMapper } from "../../src/mappers/markdown.js";
 import { rustMapper } from "../../src/mappers/rust.js";
@@ -96,10 +95,6 @@ describe("mapper performance benchmarks", () => {
 
   bench("typescriptMapper - 100 classes", async () => {
     await typescriptMapper(tsFilePath);
-  });
-
-  bench("codemapMapper (CLI) - 100 classes", async () => {
-    await codemapMapper(tsFilePath);
   });
 
   bench("markdownMapper - 50 sections", async () => {
