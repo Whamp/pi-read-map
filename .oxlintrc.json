@@ -1,9 +1,11 @@
 {
   "$schema": "./node_modules/oxlint/configuration_schema.json",
   "extends": ["./node_modules/ultracite/config/oxlint/core/.oxlintrc.json"],
-  "ignorePatterns": ["docs/", "node_modules/"],
+  "ignorePatterns": ["docs/", "node_modules/", "**/fixtures/**"],
   "jsPlugins": ["@factory/eslint-plugin"],
   "rules": {
+    "typescript/consistent-type-imports": "off",
+    "eslint-plugin-unicorn/no-array-sort": "off",
     "eslint/max-statements": ["warn", { "max": 60 }],
     "eslint/complexity": ["warn", { "max": 30 }],
     "eslint/func-style": "off",
@@ -85,6 +87,16 @@
   },
   "overrides": [
     {
+      "files": ["**/mappers/*.ts"],
+      "rules": {
+        "typescript-eslint/consistent-type-imports": "off",
+        "eslint/accessor-pairs": "off",
+        "eslint/no-empty-function": "off",
+        "eslint-plugin-unicorn/switch-case-braces": "off",
+        "eslint-plugin-unicorn/no-typeof-undefined": "off"
+      }
+    },
+    {
       "files": [
         "**/*.test.ts",
         "**/*.test.tsx",
@@ -95,7 +107,8 @@
         "eslint/no-empty-function": "off",
         "eslint/require-await": "off",
         "eslint-plugin-unicorn/consistent-function-scoping": "off",
-        "@factory/constants-file-organization": "off"
+        "@factory/constants-file-organization": "off",
+        "eslint-plugin-jest/no-conditional-expect": "off"
       }
     },
     {

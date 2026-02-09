@@ -21,6 +21,12 @@
   "keywords": ["pi", "extension", "read", "file-map"],
   "author": "",
   "license": "ISC",
+  "dependencies": {
+    "ts-morph": "^24.0.0",
+    "tree-sitter": "0.21.1",
+    "tree-sitter-cpp": "0.22.3",
+    "tree-sitter-rust": "0.23.1"
+  },
   "devDependencies": {
     "@mariozechner/pi-coding-agent": "^0.52.9",
     "@sinclair/typebox": "^0.34.0",

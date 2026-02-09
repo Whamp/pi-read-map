@@ -4,32 +4,57 @@ import { THRESHOLDS } from "./constants.js";
 import { detectLanguage } from "./language-detect.js";
 import { cMapper } from "./mappers/c.js";
 import { codemapMapper } from "./mappers/codemap.js";
+import { cppMapper } from "./mappers/cpp.js";
 import { fallbackMapper } from "./mappers/fallback.js";
 import { goMapper } from "./mappers/go.js";
 import { jsonMapper } from "./mappers/json.js";
+import { markdownMapper } from "./mappers/markdown.js";
 import { pythonMapper } from "./mappers/python.js";
+import { rustMapper } from "./mappers/rust.js";
 import { sqlMapper } from "./mappers/sql.js";
+import { typescriptMapper } from "./mappers/typescript.js";
+
+type MapperFn = (
+  filePath: string,
+  signal?: AbortSignal
+) => Promise<FileMap | null>;
+
+/**
+ * Create a mapper with fallback to another mapper.
+ */
+function withFallback(primary: MapperFn, fallback: MapperFn): MapperFn {
+  return async (filePath, signal) => {
+    const result = await primary(filePath, signal);
+    if (result) {
+      return result;
+    }
+    return fallback(filePath, signal);
+  };
+}
 
 /**
  * Registry of language-specific mappers.
+ *
+ * Phase 3: Uses internal tree-sitter/ts-morph mappers with codemap CLI fallback.
  */
-const MAPPERS: Record<
-  string,
-  (filePath: string, signal?: AbortSignal) => Promise<FileMap | null>
-> = {
-  // Phase 1
+const MAPPERS: Record<string, MapperFn> = {
+  // Phase 1: Python AST-based
   python: pythonMapper,
 
-  // Phase 2: AST-based mappers
+  // Phase 2: Go AST-based
   go: goMapper,
 
-  // Phase 2: Codemap-based mappers (tree-sitter)
-  typescript: codemapMapper,
-  javascript: codemapMapper,
-  markdown: codemapMapper,
-  rust: codemapMapper,
-  cpp: codemapMapper,
-  "c-header": codemapMapper, // .h files use codemap
+  // Phase 3: Internal ts-morph with codemap fallback
+  typescript: withFallback(typescriptMapper, codemapMapper),
+  javascript: withFallback(typescriptMapper, codemapMapper),
+
+  // Phase 3: Internal regex-based markdown
+  markdown: withFallback(markdownMapper, codemapMapper),
+
+  // Phase 3: Internal tree-sitter with codemap fallback
+  rust: withFallback(rustMapper, codemapMapper),
+  cpp: withFallback(cppMapper, codemapMapper),
+  "c-header": withFallback(cppMapper, codemapMapper), // .h files
 
   // Phase 2: Regex/subprocess mappers
   sql: sqlMapper,
