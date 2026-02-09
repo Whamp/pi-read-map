@@ -31,29 +31,44 @@ https://github.com/user-attachments/assets/4408f37b-b669-453f-a588-336a5332ae90
 
 ## Installation
 
-### Global (Recommended)
+### From Git (Recommended)
 
 ```bash
-git clone <repository-url> ~/.pi/agent/extensions/pi-read-map
-cd ~/.pi/agent/extensions/pi-read-map
-npm install
+# Global install
+pi install https://github.com/Whamp/pi-read-map
+
+# Project-local install (adds to .pi/settings.json)
+pi install https://github.com/Whamp/pi-read-map -l
 ```
 
-pi discovers the extension automatically on start or via `/reload`.
-
-### Project-Local
+### From npm
 
 ```bash
-mkdir -p .pi/extensions
-git clone <repository-url> .pi/extensions/pi-read-map
-cd .pi/extensions/pi-read-map
-npm install
+# Global install
+pi install npm:pi-read-map
+
+# Project-local install
+pi install npm:pi-read-map -l
+```
+
+### From Local Directory
+
+```bash
+# Clone and install globally
+pi install ./path/to/pi-read-map
+
+# Or project-local
+pi install ./path/to/pi-read-map -l
 ```
 
 ### One-off Test
 
+Try the extension without installing:
+
 ```bash
-pi -e ./path/to/pi-read-map/src/index.ts
+pi -e https://github.com/Whamp/pi-read-map
+pi -e npm:pi-read-map
+pi -e ./path/to/pi-read-map
 ```
 
 ## Verification

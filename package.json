@@ -22,12 +22,22 @@
     "bench": "vitest bench"
   },
   "keywords": [
+    "pi-package",
     "pi",
     "extension",
     "read",
-    "file-map"
+    "file-map",
+    "code-navigation"
   ],
-  "author": "",
+  "author": "Will Hampson",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Whamp/pi-read-map"
+  },
+  "homepage": "https://github.com/Whamp/pi-read-map#readme",
+  "bugs": {
+    "url": "https://github.com/Whamp/pi-read-map/issues"
+  },
   "license": "MIT",
   "dependencies": {
     "tree-sitter": "0.22.4",

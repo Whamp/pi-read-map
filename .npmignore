@@ -1,0 +1,27 @@
+# Tests and fixtures
+tests/
+demo/
+docs/
+
+# Config files
+.oxlintrc.json
+.oxfmtrc.jsonc
+vitest.config.ts
+vitest.e2e.config.ts
+tsconfig.json
+
+# Git and pi
+.git/
+.gitignore
+.pi/
+
+# Large files
+demo.mp4
+banner.png
+
+# Compiled binaries (rebuilt on first use)
+scripts/go_outline
+
+# Dev artifacts
+*.log
+.DS_Store
