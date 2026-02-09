@@ -45,6 +45,9 @@ const EXTENSION_MAP: Record<string, LanguageInfo> = {
   ".json": { id: "json", name: "JSON" },
   ".jsonc": { id: "json", name: "JSON" },
 
+  // JSON Lines
+  ".jsonl": { id: "jsonl", name: "JSON Lines" },
+
   // Markdown
   ".md": { id: "markdown", name: "Markdown" },
   ".mdx": { id: "markdown", name: "Markdown" },

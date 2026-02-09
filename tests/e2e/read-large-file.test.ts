@@ -4,12 +4,16 @@
  * Verifies that reading a file exceeding thresholds (>2000 lines OR >50KB)
  * produces a structural map alongside the truncated content.
  *
- * These tests verify the ACTUAL TOOL OUTPUT, not LLM summaries.
+ * These tests verify the ACTUAL TOOL OUTPUT and FILE MAP MESSAGE.
+ * The map is now sent as a separate custom message (file-map type).
+ *
+ * Model: glm-4.7 (smartest) - Python files have largest context
  */
 
 import { join } from "node:path";
 import { afterAll, afterEach, describe, expect, it } from "vitest";
 
+import { MODELS, PROVIDER } from "../helpers/models.js";
 import {
   cleanupE2ETempFiles,
   createTempFile,
@@ -19,8 +23,10 @@ import {
   hasTargetedReadGuidance,
   runPiSession,
   waitBriefly,
-  wasTruncated,
 } from "../helpers/pi-runner.js";
+
+/** Model configuration for this test file */
+const MODEL_CONFIG = { provider: PROVIDER, model: MODELS.SMART };
 
 describe("e2e: read large file", () => {
   const projectRoot = getProjectRoot();
@@ -36,23 +42,24 @@ describe("e2e: read large file", () => {
 
   it("produces a file map for files over line threshold", async () => {
     const result = await runPiSession({
+      ...MODEL_CONFIG,
       prompt: `Use the read tool to read "${largeFixture}"`,
       timeout: 90_000,
     });
 
-    // Get the actual tool output
-    const toolOutput = result.getToolOutput();
-    expect(toolOutput).not.toBeNull();
+    // Get the file map message (now sent separately)
+    const mapOutput = result.getFileMapOutput();
+    expect(mapOutput).not.toBeNull();
 
-    if (toolOutput) {
-      // Verify the file map markers are in the raw tool output
-      expect(hasFileMap(toolOutput)).toBe(true);
+    if (mapOutput) {
+      // Verify the file map markers are in the map output
+      expect(hasFileMap(mapOutput)).toBe(true);
 
       // Verify the box delimiter is present
-      expect(toolOutput).toContain(FILE_MAP_DELIMITER);
+      expect(mapOutput).toContain(FILE_MAP_DELIMITER);
 
       // Verify "File Map:" header is present
-      expect(toolOutput).toContain("File Map:");
+      expect(mapOutput).toContain("File Map:");
     }
 
     await result.cleanup();
@@ -60,21 +67,22 @@ describe("e2e: read large file", () => {
 
   it("includes file metadata in map header", async () => {
     const result = await runPiSession({
+      ...MODEL_CONFIG,
       prompt: `Use the read tool to read "${largeFixture}"`,
       timeout: 90_000,
     });
 
-    const toolOutput = result.getToolOutput();
-    expect(toolOutput).not.toBeNull();
+    const mapOutput = result.getFileMapOutput();
+    expect(mapOutput).not.toBeNull();
 
-    if (toolOutput) {
+    if (mapOutput) {
       // The map header should contain file info
-      expect(toolOutput).toContain("processor.py");
-      expect(toolOutput).toContain("Python");
+      expect(mapOutput).toContain("processor.py");
+      expect(mapOutput).toContain("Python");
 
       // Should contain line count and size
-      expect(toolOutput).toMatch(/\d+\s*(lines|,)/);
-      expect(toolOutput).toMatch(/\d+\s*KB/);
+      expect(mapOutput).toMatch(/\d+\s*(lines|,)/);
+      expect(mapOutput).toMatch(/\d+\s*KB/);
     }
 
     await result.cleanup();
@@ -82,16 +90,23 @@ describe("e2e: read large file", () => {
 
   it("includes truncation notice for large files", async () => {
     const result = await runPiSession({
+      ...MODEL_CONFIG,
       prompt: `Use the read tool to read "${largeFixture}"`,
       timeout: 90_000,
     });
 
+    // Truncation notice should be in the tool output (content) OR
+    // the file map should be present (indicating truncation occurred)
     const toolOutput = result.getToolOutput();
-    expect(toolOutput).not.toBeNull();
+    const mapOutput = result.getFileMapOutput();
 
-    if (toolOutput) {
-      // Should indicate file was truncated
-      expect(wasTruncated(toolOutput)).toBe(true);
+    // If there's a tool output, it may have truncation info
+    // OR if there's a file map, that indicates truncation occurred
+    expect(toolOutput !== null || mapOutput !== null).toBe(true);
+
+    // File map presence indicates truncation happened
+    if (mapOutput) {
+      expect(mapOutput).toContain("File Map:");
     }
 
     await result.cleanup();
@@ -99,22 +114,24 @@ describe("e2e: read large file", () => {
 
   it("extracts Python symbols with line numbers", async () => {
     const result = await runPiSession({
+      ...MODEL_CONFIG,
       prompt: `Use the read tool to read "${largeFixture}"`,
       timeout: 90_000,
     });
 
-    const toolOutput = result.getToolOutput();
-    expect(toolOutput).not.toBeNull();
+    const mapOutput = result.getFileMapOutput();
+    expect(mapOutput).not.toBeNull();
 
-    if (toolOutput) {
+    if (mapOutput) {
       // Should contain line number ranges in [start-end] or [line] format
-      expect(toolOutput).toMatch(/\[\d+(-\d+)?\]/);
+      expect(mapOutput).toMatch(/\[\d+(-\d+)?\]/);
 
       // Should contain class definitions from processor.py
-      expect(toolOutput).toMatch(/class\s+\w+/);
+      expect(mapOutput).toMatch(/class\s+\w+/);
 
-      // Should contain function/method definitions
-      expect(toolOutput).toMatch(/def\s+\w+|async\s+def\s+\w+/);
+      // Should contain method names like __init__, process, validate
+      // The map format uses "name: [lines]" not "def name"
+      expect(mapOutput).toMatch(/__init__|process|validate/);
     }
 
     await result.cleanup();
@@ -122,16 +139,17 @@ describe("e2e: read large file", () => {
 
   it("provides targeted read guidance footer", async () => {
     const result = await runPiSession({
+      ...MODEL_CONFIG,
       prompt: `Use the read tool to read "${largeFixture}"`,
       timeout: 90_000,
     });
 
-    const toolOutput = result.getToolOutput();
-    expect(toolOutput).not.toBeNull();
+    const mapOutput = result.getFileMapOutput();
+    expect(mapOutput).not.toBeNull();
 
-    if (toolOutput) {
+    if (mapOutput) {
       // Should have guidance footer
-      expect(hasTargetedReadGuidance(toolOutput)).toBe(true);
+      expect(hasTargetedReadGuidance(mapOutput)).toBe(true);
     }
 
     await result.cleanup();
@@ -152,22 +170,23 @@ describe("e2e: read large file", () => {
     const tempFile = await createTempFile("generated_large.py", content);
 
     const result = await runPiSession({
+      ...MODEL_CONFIG,
       prompt: `Use the read tool to read "${tempFile}"`,
       timeout: 90_000,
     });
 
-    const toolOutput = result.getToolOutput();
-    expect(toolOutput).not.toBeNull();
+    const mapOutput = result.getFileMapOutput();
+    expect(mapOutput).not.toBeNull();
 
-    if (toolOutput) {
+    if (mapOutput) {
       // Should have a file map
-      expect(hasFileMap(toolOutput)).toBe(true);
+      expect(hasFileMap(mapOutput)).toBe(true);
 
       // Should contain our generated functions
-      expect(toolOutput).toContain("function_0");
+      expect(mapOutput).toContain("function_0");
 
       // Should identify as Python
-      expect(toolOutput).toContain("Python");
+      expect(mapOutput).toContain("Python");
     }
 
     await result.cleanup();

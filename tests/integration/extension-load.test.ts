@@ -2,15 +2,25 @@ import { describe, it, expect, vi } from "vitest";
 
 import piReadMapExtension from "../../src/index.js";
 
+/**
+ * Create a mock pi object with all required methods for the extension.
+ */
+function createMockPi() {
+  return {
+    registerTool: vi.fn(),
+    on: vi.fn(),
+    registerMessageRenderer: vi.fn(),
+    sendMessage: vi.fn(),
+  };
+}
+
 describe("extension loading", () => {
   it("exports a default function", () => {
     expect(typeof piReadMapExtension).toBe("function");
   });
 
   it("registers the read tool when called", () => {
-    const mockPi = {
-      registerTool: vi.fn(),
-    };
+    const mockPi = createMockPi();
 
     piReadMapExtension(mockPi as never);
 
@@ -23,9 +33,7 @@ describe("extension loading", () => {
   });
 
   it("registered tool has correct schema", () => {
-    const mockPi = {
-      registerTool: vi.fn(),
-    };
+    const mockPi = createMockPi();
 
     piReadMapExtension(mockPi as never);
 
@@ -43,9 +51,7 @@ describe("extension loading", () => {
   });
 
   it("registered tool execute is callable", () => {
-    const mockPi = {
-      registerTool: vi.fn(),
-    };
+    const mockPi = createMockPi();
 
     piReadMapExtension(mockPi as never);
 
@@ -55,5 +61,24 @@ describe("extension loading", () => {
     expect(typeof registeredTool.execute).toBe("function");
     // Verify it's an async function (returns a Promise when called)
     expect(registeredTool.execute.constructor.name).toBe("AsyncFunction");
+  });
+
+  it("registers tool_result event handler", () => {
+    const mockPi = createMockPi();
+
+    piReadMapExtension(mockPi as never);
+
+    expect(mockPi.on).toHaveBeenCalledWith("tool_result", expect.any(Function));
+  });
+
+  it("registers file-map message renderer", () => {
+    const mockPi = createMockPi();
+
+    piReadMapExtension(mockPi as never);
+
+    expect(mockPi.registerMessageRenderer).toHaveBeenCalledWith(
+      "file-map",
+      expect.any(Function)
+    );
   });
 });

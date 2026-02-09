@@ -5,18 +5,33 @@
  * for verification in E2E tests.
  *
  * Uses --mode json to capture raw tool results rather than LLM summaries.
+ *
+ * Model Distribution Strategy:
+ * - glm-4.7: 3 concurrent (smartest, for complex large file tests)
+ * - glm-4.6: 3 concurrent (medium, for large file tests)
+ * - glm-4.5: 10 concurrent (fastest, for simple small file tests)
  */
 
 import { spawn } from "node:child_process";
 import { mkdir, rm, writeFile } from "node:fs/promises";
 import { join, resolve } from "node:path";
 
-import type { PiSessionOptions, PiSessionResult, ToolResult } from "./types.js";
+import type {
+  CustomMessage,
+  PiSessionOptions,
+  PiSessionResult,
+  ToolResult,
+} from "./types.js";
 
 import { FILE_MAP_DELIMITER } from "./constants.js";
 
 export { FILE_MAP_DELIMITER } from "./constants.js";
-export type { PiSessionOptions, PiSessionResult, ToolResult } from "./types.js";
+export type {
+  CustomMessage,
+  PiSessionOptions,
+  PiSessionResult,
+  ToolResult,
+} from "./types.js";
 
 /** Project root directory */
 const PROJECT_ROOT = resolve(import.meta.dirname, "../..");
@@ -24,11 +39,21 @@ const PROJECT_ROOT = resolve(import.meta.dirname, "../..");
 /** Temp directory for E2E test outputs */
 const E2E_TEMP_DIR = join(PROJECT_ROOT, "tests/fixtures/tmp/e2e");
 
+/** Default provider for E2E tests */
+const DEFAULT_PROVIDER = "zai";
+
+/** Default model for E2E tests */
+const DEFAULT_MODEL = "glm-4.5";
+
 /**
- * Parse JSON lines output to extract tool results.
+ * Parse JSON lines output to extract tool results and custom messages.
  */
-function parseToolResults(jsonLines: string): ToolResult[] {
-  const results: ToolResult[] = [];
+function parseSessionOutput(jsonLines: string): {
+  toolResults: ToolResult[];
+  customMessages: CustomMessage[];
+} {
+  const toolResults: ToolResult[] = [];
+  const customMessages: CustomMessage[] = [];
 
   for (const line of jsonLines.split("\n")) {
     if (!line.trim()) {
@@ -42,11 +67,25 @@ function parseToolResults(jsonLines: string): ToolResult[] {
       if (event.type === "agent_end" && Array.isArray(event.messages)) {
         for (const msg of event.messages) {
           if (msg.role === "toolResult") {
-            results.push({
+            toolResults.push({
               toolName: msg.toolName,
               toolCallId: msg.toolCallId,
               content: msg.content || [],
               isError: msg.isError || false,
+            });
+          }
+          // Capture custom messages (like file-map)
+          if (msg.role === "custom" && msg.customType) {
+            customMessages.push({
+              customType: msg.customType,
+              content:
+                typeof msg.content === "string"
+                  ? msg.content
+                  : msg.content
+                      ?.filter((c: { type: string }) => c.type === "text")
+                      .map((c: { text: string }) => c.text)
+                      .join("\n") || "",
+              details: msg.details,
             });
           }
         }
@@ -56,7 +95,7 @@ function parseToolResults(jsonLines: string): ToolResult[] {
     }
   }
 
-  return results;
+  return { toolResults, customMessages };
 }
 
 /**
@@ -81,10 +120,16 @@ export function runPiSession(
     timeout = 60_000,
     cwd = PROJECT_ROOT,
     flags = [],
+    provider = DEFAULT_PROVIDER,
+    model = DEFAULT_MODEL,
   } = options;
 
   const extPath = resolve(cwd, extension);
   const args = [
+    "--provider",
+    provider,
+    "--model",
+    model,
     "--mode",
     "json", // Use JSON mode to get raw tool output
     "-ne",
@@ -131,22 +176,41 @@ export function runPiSession(
         const timeoutError = new Error("Pi session timed out");
         reject(timeoutError);
       } else {
-        const toolResults = parseToolResults(stdout);
+        const { toolResults, customMessages } = parseSessionOutput(stdout);
         const [firstResult] = toolResults;
+        const fileMapMessage = customMessages.find(
+          (m) => m.customType === "file-map"
+        );
+
+        // Extract values for use in methods
+        const getToolOutputFn = (): string | null => {
+          if (!firstResult) {
+            return null;
+          }
+          const textContent = firstResult.content.find(
+            (c) => c.type === "text"
+          );
+          return textContent?.text ?? null;
+        };
+
+        const getFileMapOutputFn = (): string | null =>
+          fileMapMessage?.content ?? null;
 
         resolve({
           rawOutput: stdout,
           stderr,
           exitCode: code ?? 0,
           toolResults,
-          getToolOutput(): string | null {
-            if (!firstResult) {
+          customMessages,
+          getToolOutput: getToolOutputFn,
+          getFileMapOutput: getFileMapOutputFn,
+          getCombinedOutput(): string | null {
+            const toolOut = getToolOutputFn();
+            const mapOut = getFileMapOutputFn();
+            if (!toolOut && !mapOut) {
               return null;
             }
-            const textContent = firstResult.content.find(
-              (c) => c.type === "text"
-            );
-            return textContent?.text ?? null;
+            return [toolOut, mapOut].filter(Boolean).join("\n");
           },
           cleanup: async () => {
             // No-op cleanup function

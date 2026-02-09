@@ -5,11 +5,13 @@
  * passes through unchanged without a structural map.
  *
  * These tests verify the ACTUAL TOOL OUTPUT, not LLM summaries.
+ * Model: glm-4.5 (fast) - Simple small file tests
  */
 
 import { join } from "node:path";
 import { afterAll, afterEach, describe, expect, it } from "vitest";
 
+import { MODELS, PROVIDER } from "../helpers/models.js";
 import {
   cleanupE2ETempFiles,
   createTempFile,
@@ -19,6 +21,9 @@ import {
   runPiSession,
   waitBriefly,
 } from "../helpers/pi-runner.js";
+
+/** Model configuration for this test file */
+const MODEL_CONFIG = { provider: PROVIDER, model: MODELS.FAST };
 
 describe("e2e: read small file", () => {
   const projectRoot = getProjectRoot();
@@ -34,6 +39,7 @@ describe("e2e: read small file", () => {
 
   it("passes small files through without a map", async () => {
     const result = await runPiSession({
+      ...MODEL_CONFIG,
       prompt: `Use the read tool to read "${smallFixture}"`,
       timeout: 60_000,
     });
@@ -53,6 +59,7 @@ describe("e2e: read small file", () => {
 
   it("includes full file content for small files", async () => {
     const result = await runPiSession({
+      ...MODEL_CONFIG,
       prompt: `Use the read tool to read "${smallFixture}"`,
       timeout: 60_000,
     });
@@ -96,6 +103,7 @@ if __name__ == "__main__":
     const tempFile = await createTempFile("small_test.py", content);
 
     const result = await runPiSession({
+      ...MODEL_CONFIG,
       prompt: `Use the read tool to read "${tempFile}"`,
       timeout: 60_000,
     });
@@ -126,6 +134,7 @@ if __name__ == "__main__":
     const tempFile = await createTempFile("just_under_threshold.py", content);
 
     const result = await runPiSession({
+      ...MODEL_CONFIG,
       prompt: `Use the read tool to read "${tempFile}"`,
       timeout: 60_000,
     });
@@ -145,6 +154,7 @@ if __name__ == "__main__":
     const tempFile = await createTempFile("empty.py", "");
 
     const result = await runPiSession({
+      ...MODEL_CONFIG,
       prompt: `Use the read tool to read "${tempFile}"`,
       timeout: 60_000,
     });

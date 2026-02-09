@@ -1,0 +1,6 @@
+{"type":"session","version":3,"id":"abc123"}
+{"type":"message","id":"msg1","content":"hello"}
+{"type":"message","id":"msg2","content":"world"}
+{"type":"thinking","id":"think1","content":"processing..."}
+{"type":"toolCall","id":"tool1","name":"read"}
+{"type":"toolResult","id":"result1","success":true}

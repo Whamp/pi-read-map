@@ -9,6 +9,7 @@ import { ctagsMapper } from "./mappers/ctags.js";
 import { fallbackMapper } from "./mappers/fallback.js";
 import { goMapper } from "./mappers/go.js";
 import { jsonMapper } from "./mappers/json.js";
+import { jsonlMapper } from "./mappers/jsonl.js";
 import { markdownMapper } from "./mappers/markdown.js";
 import { pythonMapper } from "./mappers/python.js";
 import { rustMapper } from "./mappers/rust.js";
@@ -49,6 +50,7 @@ const MAPPERS: Record<string, MapperFn> = {
   // Phase 2: Regex/subprocess mappers
   sql: sqlMapper,
   json: jsonMapper,
+  jsonl: jsonlMapper,
   c: cMapper, // .c files use regex
 
   // Phase 4: Extended coverage

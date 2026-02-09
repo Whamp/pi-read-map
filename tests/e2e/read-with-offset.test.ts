@@ -5,11 +5,13 @@
  * unchanged, even for large files that would normally get mapped.
  *
  * These tests verify the ACTUAL TOOL OUTPUT, not LLM summaries.
+ * Model: glm-4.5 (fast) - Simple offset/limit tests
  */
 
 import { join } from "node:path";
 import { afterAll, afterEach, describe, expect, it } from "vitest";
 
+import { MODELS, PROVIDER } from "../helpers/models.js";
 import {
   cleanupE2ETempFiles,
   createTempFile,
@@ -18,6 +20,9 @@ import {
   runPiSession,
   waitBriefly,
 } from "../helpers/pi-runner.js";
+
+/** Model configuration for this test file */
+const MODEL_CONFIG = { provider: PROVIDER, model: MODELS.FAST };
 
 describe("e2e: read with offset/limit", () => {
   const projectRoot = getProjectRoot();
@@ -33,6 +38,7 @@ describe("e2e: read with offset/limit", () => {
 
   it("passes through with offset parameter (no map)", async () => {
     const result = await runPiSession({
+      ...MODEL_CONFIG,
       prompt: `Use the read tool to read "${largeFixture}" starting at offset 100`,
       timeout: 90_000,
     });
@@ -50,6 +56,7 @@ describe("e2e: read with offset/limit", () => {
 
   it("passes through with limit parameter (no map)", async () => {
     const result = await runPiSession({
+      ...MODEL_CONFIG,
       prompt: `Use the read tool to read "${largeFixture}" with a limit of 50 lines`,
       timeout: 90_000,
     });
@@ -67,6 +74,7 @@ describe("e2e: read with offset/limit", () => {
 
   it("passes through with both offset and limit (no map)", async () => {
     const result = await runPiSession({
+      ...MODEL_CONFIG,
       prompt: `Use the read tool to read "${largeFixture}" from offset 200 with limit 100`,
       timeout: 90_000,
     });
@@ -93,6 +101,7 @@ describe("e2e: read with offset/limit", () => {
     const tempFile = await createTempFile("offset_test.txt", content);
 
     const result = await runPiSession({
+      ...MODEL_CONFIG,
       prompt: `Use the read tool to read "${tempFile}" starting at line 100 with limit 10`,
       timeout: 60_000,
     });
@@ -121,6 +130,7 @@ describe("e2e: read with offset/limit", () => {
     const tempFile = await createTempFile("offset_large.py", content);
 
     const result = await runPiSession({
+      ...MODEL_CONFIG,
       prompt: `Use the read tool to read "${tempFile}" with offset=500 and limit=50`,
       timeout: 90_000,
     });
@@ -141,33 +151,42 @@ describe("e2e: read with offset/limit", () => {
     // Each offset read should NOT produce a map
 
     const result1 = await runPiSession({
+      ...MODEL_CONFIG,
       prompt: `Use the read tool to read "${largeFixture}" with offset 1 and limit 100`,
       timeout: 90_000,
     });
     const output1 = result1.getToolOutput();
-    expect(output1).not.toBeNull();
+    const map1 = result1.getFileMapOutput();
+    // Offset reads should not produce a file map
+    expect(map1).toBeNull();
     if (output1) {
       expect(hasFileMap(output1)).toBe(false);
     }
     await result1.cleanup();
 
     const result2 = await runPiSession({
+      ...MODEL_CONFIG,
       prompt: `Use the read tool to read "${largeFixture}" with offset 101 and limit 100`,
       timeout: 90_000,
     });
     const output2 = result2.getToolOutput();
-    expect(output2).not.toBeNull();
+    const map2 = result2.getFileMapOutput();
+    // Offset reads should not produce a file map
+    expect(map2).toBeNull();
     if (output2) {
       expect(hasFileMap(output2)).toBe(false);
     }
     await result2.cleanup();
 
     const result3 = await runPiSession({
+      ...MODEL_CONFIG,
       prompt: `Use the read tool to read "${largeFixture}" with offset 201 and limit 100`,
       timeout: 90_000,
     });
     const output3 = result3.getToolOutput();
-    expect(output3).not.toBeNull();
+    const map3 = result3.getFileMapOutput();
+    // Offset reads should not produce a file map
+    expect(map3).toBeNull();
     if (output3) {
       expect(hasFileMap(output3)).toBe(false);
     }

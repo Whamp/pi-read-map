@@ -1,0 +1,100 @@
+{"timestamp":"2024-01-01T00:00:00Z","level":"INFO","message":"Application started","service":"api","trace_id":"abc123"}
+{"timestamp":"2024-01-01T00:00:01Z","level":"DEBUG","message":"Connecting to database","service":"api","trace_id":"abc123"}
+{"timestamp":"2024-01-01T00:00:02Z","level":"INFO","message":"Database connected","service":"api","trace_id":"abc123"}
+{"timestamp":"2024-01-01T00:00:03Z","level":"WARN","message":"Slow query detected","service":"db","trace_id":"def456","query_time_ms":2500}
+{"timestamp":"2024-01-01T00:00:04Z","level":"ERROR","message":"Connection timeout","service":"api","trace_id":"ghi789","error":"ETIMEDOUT"}
+{"timestamp":"2024-01-01T00:00:05Z","level":"INFO","message":"Request completed","service":"api","trace_id":"abc123","duration_ms":45}
+{"timestamp":"2024-01-01T00:00:06Z","level":"DEBUG","message":"Cache hit","service":"cache","trace_id":"jkl012"}
+{"timestamp":"2024-01-01T00:00:07Z","level":"INFO","message":"User login","service":"auth","trace_id":"mno345","user_id":12345}
+{"timestamp":"2024-01-01T00:00:08Z","level":"INFO","message":"Request completed","service":"api","trace_id":"pqr678","duration_ms":23}
+{"timestamp":"2024-01-01T00:00:09Z","level":"WARN","message":"Rate limit approaching","service":"gateway","trace_id":"stu901","remaining":10}
+{"timestamp":"2024-01-01T00:00:00Z","level":"INFO","message":"Application started","service":"api","trace_id":"abc123"}
+{"timestamp":"2024-01-01T00:00:01Z","level":"DEBUG","message":"Connecting to database","service":"api","trace_id":"abc123"}
+{"timestamp":"2024-01-01T00:00:02Z","level":"INFO","message":"Database connected","service":"api","trace_id":"abc123"}
+{"timestamp":"2024-01-01T00:00:03Z","level":"WARN","message":"Slow query detected","service":"db","trace_id":"def456","query_time_ms":2500}
+{"timestamp":"2024-01-01T00:00:04Z","level":"ERROR","message":"Connection timeout","service":"api","trace_id":"ghi789","error":"ETIMEDOUT"}
+{"timestamp":"2024-01-01T00:00:05Z","level":"INFO","message":"Request completed","service":"api","trace_id":"abc123","duration_ms":45}
+{"timestamp":"2024-01-01T00:00:06Z","level":"DEBUG","message":"Cache hit","service":"cache","trace_id":"jkl012"}
+{"timestamp":"2024-01-01T00:00:07Z","level":"INFO","message":"User login","service":"auth","trace_id":"mno345","user_id":12345}
+{"timestamp":"2024-01-01T00:00:08Z","level":"INFO","message":"Request completed","service":"api","trace_id":"pqr678","duration_ms":23}
+{"timestamp":"2024-01-01T00:00:09Z","level":"WARN","message":"Rate limit approaching","service":"gateway","trace_id":"stu901","remaining":10}
+{"timestamp":"2024-01-01T00:00:00Z","level":"INFO","message":"Application started","service":"api","trace_id":"abc123"}
+{"timestamp":"2024-01-01T00:00:01Z","level":"DEBUG","message":"Connecting to database","service":"api","trace_id":"abc123"}
+{"timestamp":"2024-01-01T00:00:02Z","level":"INFO","message":"Database connected","service":"api","trace_id":"abc123"}
+{"timestamp":"2024-01-01T00:00:03Z","level":"WARN","message":"Slow query detected","service":"db","trace_id":"def456","query_time_ms":2500}
+{"timestamp":"2024-01-01T00:00:04Z","level":"ERROR","message":"Connection timeout","service":"api","trace_id":"ghi789","error":"ETIMEDOUT"}
+{"timestamp":"2024-01-01T00:00:05Z","level":"INFO","message":"Request completed","service":"api","trace_id":"abc123","duration_ms":45}
+{"timestamp":"2024-01-01T00:00:06Z","level":"DEBUG","message":"Cache hit","service":"cache","trace_id":"jkl012"}
+{"timestamp":"2024-01-01T00:00:07Z","level":"INFO","message":"User login","service":"auth","trace_id":"mno345","user_id":12345}
+{"timestamp":"2024-01-01T00:00:08Z","level":"INFO","message":"Request completed","service":"api","trace_id":"pqr678","duration_ms":23}
+{"timestamp":"2024-01-01T00:00:09Z","level":"WARN","message":"Rate limit approaching","service":"gateway","trace_id":"stu901","remaining":10}
+{"timestamp":"2024-01-01T00:00:00Z","level":"INFO","message":"Application started","service":"api","trace_id":"abc123"}
+{"timestamp":"2024-01-01T00:00:01Z","level":"DEBUG","message":"Connecting to database","service":"api","trace_id":"abc123"}
+{"timestamp":"2024-01-01T00:00:02Z","level":"INFO","message":"Database connected","service":"api","trace_id":"abc123"}
+{"timestamp":"2024-01-01T00:00:03Z","level":"WARN","message":"Slow query detected","service":"db","trace_id":"def456","query_time_ms":2500}
+{"timestamp":"2024-01-01T00:00:04Z","level":"ERROR","message":"Connection timeout","service":"api","trace_id":"ghi789","error":"ETIMEDOUT"}
+{"timestamp":"2024-01-01T00:00:05Z","level":"INFO","message":"Request completed","service":"api","trace_id":"abc123","duration_ms":45}
+{"timestamp":"2024-01-01T00:00:06Z","level":"DEBUG","message":"Cache hit","service":"cache","trace_id":"jkl012"}
+{"timestamp":"2024-01-01T00:00:07Z","level":"INFO","message":"User login","service":"auth","trace_id":"mno345","user_id":12345}
+{"timestamp":"2024-01-01T00:00:08Z","level":"INFO","message":"Request completed","service":"api","trace_id":"pqr678","duration_ms":23}
+{"timestamp":"2024-01-01T00:00:09Z","level":"WARN","message":"Rate limit approaching","service":"gateway","trace_id":"stu901","remaining":10}
+{"timestamp":"2024-01-01T00:00:00Z","level":"INFO","message":"Application started","service":"api","trace_id":"abc123"}
+{"timestamp":"2024-01-01T00:00:01Z","level":"DEBUG","message":"Connecting to database","service":"api","trace_id":"abc123"}
+{"timestamp":"2024-01-01T00:00:02Z","level":"INFO","message":"Database connected","service":"api","trace_id":"abc123"}
+{"timestamp":"2024-01-01T00:00:03Z","level":"WARN","message":"Slow query detected","service":"db","trace_id":"def456","query_time_ms":2500}
+{"timestamp":"2024-01-01T00:00:04Z","level":"ERROR","message":"Connection timeout","service":"api","trace_id":"ghi789","error":"ETIMEDOUT"}
+{"timestamp":"2024-01-01T00:00:05Z","level":"INFO","message":"Request completed","service":"api","trace_id":"abc123","duration_ms":45}
+{"timestamp":"2024-01-01T00:00:06Z","level":"DEBUG","message":"Cache hit","service":"cache","trace_id":"jkl012"}
+{"timestamp":"2024-01-01T00:00:07Z","level":"INFO","message":"User login","service":"auth","trace_id":"mno345","user_id":12345}
+{"timestamp":"2024-01-01T00:00:08Z","level":"INFO","message":"Request completed","service":"api","trace_id":"pqr678","duration_ms":23}
+{"timestamp":"2024-01-01T00:00:09Z","level":"WARN","message":"Rate limit approaching","service":"gateway","trace_id":"stu901","remaining":10}
+{"timestamp":"2024-01-01T00:00:00Z","level":"INFO","message":"Application started","service":"api","trace_id":"abc123"}
+{"timestamp":"2024-01-01T00:00:01Z","level":"DEBUG","message":"Connecting to database","service":"api","trace_id":"abc123"}
+{"timestamp":"2024-01-01T00:00:02Z","level":"INFO","message":"Database connected","service":"api","trace_id":"abc123"}
+{"timestamp":"2024-01-01T00:00:03Z","level":"WARN","message":"Slow query detected","service":"db","trace_id":"def456","query_time_ms":2500}
+{"timestamp":"2024-01-01T00:00:04Z","level":"ERROR","message":"Connection timeout","service":"api","trace_id":"ghi789","error":"ETIMEDOUT"}
+{"timestamp":"2024-01-01T00:00:05Z","level":"INFO","message":"Request completed","service":"api","trace_id":"abc123","duration_ms":45}
+{"timestamp":"2024-01-01T00:00:06Z","level":"DEBUG","message":"Cache hit","service":"cache","trace_id":"jkl012"}
+{"timestamp":"2024-01-01T00:00:07Z","level":"INFO","message":"User login","service":"auth","trace_id":"mno345","user_id":12345}
+{"timestamp":"2024-01-01T00:00:08Z","level":"INFO","message":"Request completed","service":"api","trace_id":"pqr678","duration_ms":23}
+{"timestamp":"2024-01-01T00:00:09Z","level":"WARN","message":"Rate limit approaching","service":"gateway","trace_id":"stu901","remaining":10}
+{"timestamp":"2024-01-01T00:00:00Z","level":"INFO","message":"Application started","service":"api","trace_id":"abc123"}
+{"timestamp":"2024-01-01T00:00:01Z","level":"DEBUG","message":"Connecting to database","service":"api","trace_id":"abc123"}
+{"timestamp":"2024-01-01T00:00:02Z","level":"INFO","message":"Database connected","service":"api","trace_id":"abc123"}
+{"timestamp":"2024-01-01T00:00:03Z","level":"WARN","message":"Slow query detected","service":"db","trace_id":"def456","query_time_ms":2500}
+{"timestamp":"2024-01-01T00:00:04Z","level":"ERROR","message":"Connection timeout","service":"api","trace_id":"ghi789","error":"ETIMEDOUT"}
+{"timestamp":"2024-01-01T00:00:05Z","level":"INFO","message":"Request completed","service":"api","trace_id":"abc123","duration_ms":45}
+{"timestamp":"2024-01-01T00:00:06Z","level":"DEBUG","message":"Cache hit","service":"cache","trace_id":"jkl012"}
+{"timestamp":"2024-01-01T00:00:07Z","level":"INFO","message":"User login","service":"auth","trace_id":"mno345","user_id":12345}
+{"timestamp":"2024-01-01T00:00:08Z","level":"INFO","message":"Request completed","service":"api","trace_id":"pqr678","duration_ms":23}
+{"timestamp":"2024-01-01T00:00:09Z","level":"WARN","message":"Rate limit approaching","service":"gateway","trace_id":"stu901","remaining":10}
+{"timestamp":"2024-01-01T00:00:00Z","level":"INFO","message":"Application started","service":"api","trace_id":"abc123"}
+{"timestamp":"2024-01-01T00:00:01Z","level":"DEBUG","message":"Connecting to database","service":"api","trace_id":"abc123"}
+{"timestamp":"2024-01-01T00:00:02Z","level":"INFO","message":"Database connected","service":"api","trace_id":"abc123"}
+{"timestamp":"2024-01-01T00:00:03Z","level":"WARN","message":"Slow query detected","service":"db","trace_id":"def456","query_time_ms":2500}
+{"timestamp":"2024-01-01T00:00:04Z","level":"ERROR","message":"Connection timeout","service":"api","trace_id":"ghi789","error":"ETIMEDOUT"}
+{"timestamp":"2024-01-01T00:00:05Z","level":"INFO","message":"Request completed","service":"api","trace_id":"abc123","duration_ms":45}
+{"timestamp":"2024-01-01T00:00:06Z","level":"DEBUG","message":"Cache hit","service":"cache","trace_id":"jkl012"}
+{"timestamp":"2024-01-01T00:00:07Z","level":"INFO","message":"User login","service":"auth","trace_id":"mno345","user_id":12345}
+{"timestamp":"2024-01-01T00:00:08Z","level":"INFO","message":"Request completed","service":"api","trace_id":"pqr678","duration_ms":23}
+{"timestamp":"2024-01-01T00:00:09Z","level":"WARN","message":"Rate limit approaching","service":"gateway","trace_id":"stu901","remaining":10}
+{"timestamp":"2024-01-01T00:00:00Z","level":"INFO","message":"Application started","service":"api","trace_id":"abc123"}
+{"timestamp":"2024-01-01T00:00:01Z","level":"DEBUG","message":"Connecting to database","service":"api","trace_id":"abc123"}
+{"timestamp":"2024-01-01T00:00:02Z","level":"INFO","message":"Database connected","service":"api","trace_id":"abc123"}
+{"timestamp":"2024-01-01T00:00:03Z","level":"WARN","message":"Slow query detected","service":"db","trace_id":"def456","query_time_ms":2500}
+{"timestamp":"2024-01-01T00:00:04Z","level":"ERROR","message":"Connection timeout","service":"api","trace_id":"ghi789","error":"ETIMEDOUT"}
+{"timestamp":"2024-01-01T00:00:05Z","level":"INFO","message":"Request completed","service":"api","trace_id":"abc123","duration_ms":45}
+{"timestamp":"2024-01-01T00:00:06Z","level":"DEBUG","message":"Cache hit","service":"cache","trace_id":"jkl012"}
+{"timestamp":"2024-01-01T00:00:07Z","level":"INFO","message":"User login","service":"auth","trace_id":"mno345","user_id":12345}
+{"timestamp":"2024-01-01T00:00:08Z","level":"INFO","message":"Request completed","service":"api","trace_id":"pqr678","duration_ms":23}
+{"timestamp":"2024-01-01T00:00:09Z","level":"WARN","message":"Rate limit approaching","service":"gateway","trace_id":"stu901","remaining":10}
+{"timestamp":"2024-01-01T00:01:00Z","level":"INFO","message":"Batch job started","service":"worker","trace_id":"batch001"}
+{"timestamp":"2024-01-01T00:01:01Z","level":"DEBUG","message":"Processing item 1","service":"worker","trace_id":"batch001"}
+{"timestamp":"2024-01-01T00:01:02Z","level":"DEBUG","message":"Processing item 2","service":"worker","trace_id":"batch001"}
+{"timestamp":"2024-01-01T00:01:03Z","level":"DEBUG","message":"Processing item 3","service":"worker","trace_id":"batch001"}
+{"timestamp":"2024-01-01T00:01:04Z","level":"INFO","message":"Batch job completed","service":"worker","trace_id":"batch001","items_processed":3}
+{"timestamp":"2024-01-01T00:02:00Z","level":"ERROR","message":"Failed to send email","service":"notifications","trace_id":"email123","error":"ECONNREFUSED"}
+{"timestamp":"2024-01-01T00:02:01Z","level":"INFO","message":"Retrying email send","service":"notifications","trace_id":"email123","attempt":2}
+{"timestamp":"2024-01-01T00:02:02Z","level":"INFO","message":"Email sent successfully","service":"notifications","trace_id":"email123"}
+{"timestamp":"2024-01-01T00:03:00Z","level":"INFO","message":"Scheduled job triggered","service":"scheduler","trace_id":"cron001","job_name":"cleanup"}
+{"timestamp":"2024-01-01T00:03:01Z","level":"INFO","message":"Cleanup completed","service":"scheduler","trace_id":"cron001","deleted_count":150}

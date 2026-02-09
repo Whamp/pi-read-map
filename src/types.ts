@@ -73,3 +73,19 @@ export interface LanguageInfo {
   /** Display name */
   name: string;
 }
+
+/**
+ * Details for file map custom messages.
+ */
+export interface FileMapMessageDetails {
+  /** Absolute file path */
+  filePath: string;
+  /** Total lines in file */
+  totalLines: number;
+  /** Total bytes in file */
+  totalBytes: number;
+  /** Number of symbols in map */
+  symbolCount: number;
+  /** Detected language */
+  language: string;
+}

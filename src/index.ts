@@ -1,23 +1,38 @@
-import type { ExtensionAPI } from "@mariozechner/pi-coding-agent";
+import type { ExtensionAPI, Theme } from "@mariozechner/pi-coding-agent";
 
 import {
   createReadTool,
   DEFAULT_MAX_LINES,
   DEFAULT_MAX_BYTES,
 } from "@mariozechner/pi-coding-agent";
+import { Text } from "@mariozechner/pi-tui";
 import { Type } from "@sinclair/typebox";
 import { exec } from "node:child_process";
 import { stat } from "node:fs/promises";
-import { resolve } from "node:path";
+import { basename, resolve } from "node:path";
 import { promisify } from "node:util";
+
+import type { FileMapMessageDetails } from "./types.js";
 
 import { formatFileMapWithBudget } from "./formatter.js";
 import { generateMap, shouldGenerateMap } from "./mapper.js";
+
+export type { FileMapMessageDetails } from "./types.js";
 
 const execAsync = promisify(exec);
 
 // In-memory cache for maps
 const mapCache = new Map<string, { mtime: number; map: string }>();
+
+// Pending maps waiting to be sent after tool_result
+const pendingMaps = new Map<
+  string,
+  {
+    path: string;
+    map: string;
+    details: FileMapMessageDetails;
+  }
+>();
 
 /**
  * Reset the map cache. Exported for testing purposes only.
@@ -26,14 +41,21 @@ export function resetMapCache(): void {
   mapCache.clear();
 }
 
-function formatSize(bytes: number): string {
-  if (bytes < 1024) {
-    return `${bytes} B`;
-  }
-  if (bytes < 1024 * 1024) {
-    return `${(bytes / 1024).toFixed(0)} KB`;
-  }
-  return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
+/**
+ * Reset the pending maps. Exported for testing purposes only.
+ */
+export function resetPendingMaps(): void {
+  pendingMaps.clear();
+}
+
+/**
+ * Get pending maps for testing inspection.
+ */
+export function getPendingMaps(): Map<
+  string,
+  { path: string; map: string; details: FileMapMessageDetails }
+> {
+  return pendingMaps;
 }
 
 export default function piReadMapExtension(pi: ExtensionAPI): void {
@@ -42,6 +64,70 @@ export default function piReadMapExtension(pi: ExtensionAPI): void {
 
   // Create the built-in read tool to delegate to
   const builtInRead = createReadTool(cwd);
+
+  // Register tool_result handler to send pending maps
+  pi.on("tool_result", (event, _ctx) => {
+    if (event.toolName !== "read") {
+      return;
+    }
+
+    const pending = pendingMaps.get(event.toolCallId);
+    if (!pending) {
+      return;
+    }
+
+    // Send the map as a custom message
+    pi.sendMessage({
+      customType: "file-map",
+      content: pending.map,
+      display: true,
+      details: pending.details,
+    });
+
+    // Clean up
+    pendingMaps.delete(event.toolCallId);
+  });
+
+  // Register custom message renderer for file-map type
+  pi.registerMessageRenderer<FileMapMessageDetails>(
+    "file-map",
+    (message, options, theme: Theme) => {
+      const { expanded } = options;
+      const { details } = message;
+
+      if (expanded) {
+        // Expanded: show full formatted map
+        // message.content can be string or array of content blocks
+        const content =
+          typeof message.content === "string"
+            ? message.content
+            : message.content
+                .filter((c) => c.type === "text")
+                .map((c) => (c as { type: "text"; text: string }).text)
+                .join("\n");
+        return new Text(content, 0, 0);
+      }
+
+      // Collapsed: show summary
+      const fileName = details ? basename(details.filePath) : "file";
+      const symbolCount = details?.symbolCount ?? 0;
+      const totalLines = details?.totalLines ?? 0;
+      const detailLanguage = details?.language ?? "unknown";
+
+      let summary = theme.fg("accent", "📄 File Map: ");
+      summary += theme.fg("toolTitle", theme.bold(fileName));
+      summary += theme.fg("muted", ` │ `);
+      summary += theme.fg("dim", `${symbolCount} symbols`);
+      summary += theme.fg("muted", ` │ `);
+      summary += theme.fg("dim", `${totalLines.toLocaleString()} lines`);
+      summary += theme.fg("muted", ` │ `);
+      summary += theme.fg("dim", detailLanguage);
+      summary += theme.fg("muted", ` │ `);
+      summary += theme.fg("warning", "Ctrl+O to expand");
+
+      return new Text(summary, 0, 0);
+    }
+  );
 
   // Register our enhanced read tool
   pi.registerTool({
@@ -119,16 +205,28 @@ export default function piReadMapExtension(pi: ExtensionAPI): void {
       // Check cache
       const cached = mapCache.get(absPath);
       let mapText: string;
+      let symbolCount: number;
+      let language: string;
 
       if (cached && cached.mtime === stats.mtimeMs) {
-        // Cache hit
-        mapText = cached.map;
+        // Cache hit - we need to regenerate map for metadata
+        // (alternatively, cache could store metadata too)
+        const fileMap = await generateMap(absPath, { signal });
+        if (fileMap) {
+          mapText = cached.map;
+          ({ language } = fileMap);
+          symbolCount = fileMap.symbols.length;
+        } else {
+          return result;
+        }
       } else {
         // Generate new map
         const fileMap = await generateMap(absPath, { signal });
 
         if (fileMap) {
           mapText = formatFileMapWithBudget(fileMap);
+          ({ language } = fileMap);
+          symbolCount = fileMap.symbols.length;
           // Cache it
           mapCache.set(absPath, { mtime: stats.mtimeMs, map: mapText });
         } else {
@@ -137,29 +235,25 @@ export default function piReadMapExtension(pi: ExtensionAPI): void {
         }
       }
 
-      // Append map to content
-      if (result.content && result.content.length > 0) {
-        const [firstContent, ...restContent] = result.content;
-        if (firstContent && firstContent.type === "text") {
-          // Find and modify the truncation message
-          let { text } = firstContent;
+      // Store map in pendingMaps for delivery after tool_result event
+      pendingMaps.set(toolCallId, {
+        path: absPath,
+        map: mapText,
+        details: {
+          filePath: absPath,
+          totalLines,
+          totalBytes: stats.size,
+          symbolCount,
+          language,
+        },
+      });
 
-          // Add truncation notice if not present
-          if (!text.includes("[Truncated:") && !text.includes("lines shown")) {
-            text += `\n\n[Truncated: showing first ${DEFAULT_MAX_LINES} lines of ${totalLines.toLocaleString()} (${formatSize(DEFAULT_MAX_BYTES)} of ${formatSize(stats.size)})]`;
-          }
-
-          // Append the map
-          text += mapText;
-
-          return {
-            ...result,
-            content: [{ type: "text" as const, text }, ...restContent],
-          };
-        }
-      }
-
-      return result;
+      // Return the built-in result unmodified (with cleared truncation details
+      // since we're providing a map separately)
+      return {
+        ...result,
+        details: undefined,
+      };
     },
   });
 }

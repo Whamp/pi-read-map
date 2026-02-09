@@ -89,6 +89,13 @@ describe("detectLanguage", () => {
     expect(detectLanguage("file.jsonc")).toEqual({ id: "json", name: "JSON" });
   });
 
+  it("detects JSON Lines files", () => {
+    expect(detectLanguage("file.jsonl")).toEqual({
+      id: "jsonl",
+      name: "JSON Lines",
+    });
+  });
+
   it("detects Markdown files", () => {
     expect(detectLanguage("file.md")).toEqual({
       id: "markdown",

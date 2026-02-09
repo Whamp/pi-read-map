@@ -13,6 +13,10 @@ export interface PiSessionOptions {
   cwd?: string;
   /** Additional CLI flags */
   flags?: string[];
+  /** Model provider (default: zai) */
+  provider?: string;
+  /** Model name (default: glm-4.7) */
+  model?: string;
 }
 
 export interface ToolResult {
@@ -20,6 +24,12 @@ export interface ToolResult {
   toolCallId: string;
   content: { type: string; text?: string }[];
   isError: boolean;
+}
+
+export interface CustomMessage {
+  customType: string;
+  content: string;
+  details?: Record<string, unknown>;
 }
 
 export interface PiSessionResult {
@@ -31,8 +41,14 @@ export interface PiSessionResult {
   exitCode: number;
   /** Parsed tool results from the session */
   toolResults: ToolResult[];
+  /** Parsed custom messages from the session */
+  customMessages: CustomMessage[];
   /** Get the text content from the first tool result */
   getToolOutput(): string | null;
+  /** Get the first file-map custom message content */
+  getFileMapOutput(): string | null;
+  /** Get combined tool output and file map (for backward compat) */
+  getCombinedOutput(): string | null;
   /** Cleanup function */
   cleanup: () => Promise<void>;
 }
