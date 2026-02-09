@@ -5,6 +5,8 @@ import { detectLanguage } from "./language-detect.js";
 import { cMapper } from "./mappers/c.js";
 import { codemapMapper } from "./mappers/codemap.js";
 import { cppMapper } from "./mappers/cpp.js";
+import { csvMapper } from "./mappers/csv.js";
+import { ctagsMapper } from "./mappers/ctags.js";
 import { fallbackMapper } from "./mappers/fallback.js";
 import { goMapper } from "./mappers/go.js";
 import { jsonMapper } from "./mappers/json.js";
@@ -12,7 +14,9 @@ import { markdownMapper } from "./mappers/markdown.js";
 import { pythonMapper } from "./mappers/python.js";
 import { rustMapper } from "./mappers/rust.js";
 import { sqlMapper } from "./mappers/sql.js";
+import { tomlMapper } from "./mappers/toml.js";
 import { typescriptMapper } from "./mappers/typescript.js";
+import { yamlMapper } from "./mappers/yaml.js";
 
 type MapperFn = (
   filePath: string,
@@ -60,13 +64,18 @@ const MAPPERS: Record<string, MapperFn> = {
   sql: sqlMapper,
   json: jsonMapper,
   c: cMapper, // .c files use regex
+
+  // Phase 4: Extended coverage
+  yaml: yamlMapper,
+  toml: tomlMapper,
+  csv: csvMapper,
 };
 
 /**
  * Generate a structural map for a file.
  *
  * Dispatches to the appropriate language-specific mapper,
- * falling back to grep-based extraction if no specific mapper exists.
+ * falling back to ctags (if available) then grep-based extraction.
  */
 export async function generateMap(
   filePath: string,
@@ -78,7 +87,11 @@ export async function generateMap(
   const langInfo = detectLanguage(filePath);
 
   if (!langInfo) {
-    // Unknown language, use fallback
+    // Unknown language, try ctags then fallback
+    const ctagsResult = await ctagsMapper(filePath, signal);
+    if (ctagsResult) {
+      return ctagsResult;
+    }
     return fallbackMapper(filePath, signal);
   }
 
@@ -90,10 +103,16 @@ export async function generateMap(
     if (result) {
       return result;
     }
-    // Mapper failed, fall through to fallback
+    // Mapper failed, fall through to ctags/fallback
   }
 
-  // Use fallback mapper
+  // Try ctags as intermediate fallback (better than grep when available)
+  const ctagsResult = await ctagsMapper(filePath, signal);
+  if (ctagsResult) {
+    return ctagsResult;
+  }
+
+  // Use grep-based fallback mapper
   return fallbackMapper(filePath, signal);
 }
 

@@ -451,21 +451,21 @@ Most files fit at full or compact level. Only pathological files (thousands of s
 
 **Gate:** All tests pass, performance targets met.
 
-### Phase 4: Extended Coverage
+### Phase 4: Extended Coverage ✅ COMPLETE
 
 **Implementation:**
-- [ ] YAML/TOML mappers
-- [ ] CSV mapper
-- [ ] universal-ctags integration as a broad fallback
-- [ ] Evaluate adding codemap support for Python/Go natively (tree-sitter grammars exist)
+- [x] YAML/TOML mappers (regex-based, in-process)
+- [x] CSV mapper (in-process, handles both CSV and TSV)
+- [x] universal-ctags integration as a broad fallback (graceful skip when not installed)
+- [ ] Evaluate adding codemap support for Python/Go natively (tree-sitter grammars exist) (deferred)
 
 **Validation:**
-- [ ] Unit test: YAML mapper extracts top-level keys
-- [ ] Unit test: TOML mapper extracts sections and keys
-- [ ] Unit test: CSV mapper extracts headers and row count
-- [ ] Integration test: ctags works when installed, skips when not
+- [x] Unit test: YAML mapper extracts top-level keys with line numbers (5 tests)
+- [x] Unit test: TOML mapper extracts sections and keys (6 tests)
+- [x] Unit test: CSV mapper extracts headers and row count (6 tests)
+- [x] Integration test: ctags works when installed, skips when not (5 tests)
 
-**Gate:** All tests pass.
+**Gate:** All tests pass (118 tests).
 
 ## Technical Details
 

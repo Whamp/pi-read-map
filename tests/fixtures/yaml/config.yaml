@@ -1,0 +1,36 @@
+# Sample YAML configuration file
+name: pi-read-map
+version: 1.0.0
+description: A pi extension for file mapping
+
+dependencies:
+  tree-sitter: ^0.20.0
+  ts-morph: ^21.0.0
+  vitest: ^1.0.0
+
+scripts:
+  test: vitest run
+  build: tsc
+  lint: oxlint
+
+config:
+  maxLines: 2000
+  maxBytes: 51200
+  timeout: 5000
+
+author:
+  name: Developer
+  email: dev@example.com
+
+keywords:
+  - pi
+  - extension
+  - code-analysis
+
+matrix:
+  - name: linux
+    os: ubuntu-latest
+    node: 20
+  - name: macos
+    os: macos-latest
+    node: 20

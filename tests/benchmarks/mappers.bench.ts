@@ -1,12 +1,12 @@
-import { describe, bench, beforeAll } from "vitest";
-import { join } from "node:path";
 import { writeFile, mkdir, rm } from "node:fs/promises";
+import { join } from "node:path";
+import { describe, bench, beforeAll } from "vitest";
 
-import { typescriptMapper } from "../../src/mappers/typescript.js";
-import { markdownMapper } from "../../src/mappers/markdown.js";
-import { cppMapper } from "../../src/mappers/cpp.js";
-import { rustMapper } from "../../src/mappers/rust.js";
 import { codemapMapper } from "../../src/mappers/codemap.js";
+import { cppMapper } from "../../src/mappers/cpp.js";
+import { markdownMapper } from "../../src/mappers/markdown.js";
+import { rustMapper } from "../../src/mappers/rust.js";
+import { typescriptMapper } from "../../src/mappers/typescript.js";
 
 const FIXTURES_DIR = join(import.meta.dirname, "../fixtures/bench");
 
