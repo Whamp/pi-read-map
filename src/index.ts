@@ -19,6 +19,13 @@ const execAsync = promisify(exec);
 // In-memory cache for maps
 const mapCache = new Map<string, { mtime: number; map: string }>();
 
+/**
+ * Reset the map cache. Exported for testing purposes only.
+ */
+export function resetMapCache(): void {
+  mapCache.clear();
+}
+
 function formatSize(bytes: number): string {
   if (bytes < 1024) {
     return `${bytes} B`;

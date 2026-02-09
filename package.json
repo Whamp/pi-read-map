@@ -15,6 +15,7 @@
     "validate": "npm run typecheck && npm run lint && npm run format:check",
     "test": "vitest run",
     "test:watch": "vitest",
+    "test:integration": "vitest run tests/integration/",
     "test:e2e": "vitest run --config vitest.e2e.config.ts",
     "bench": "vitest bench"
   },
