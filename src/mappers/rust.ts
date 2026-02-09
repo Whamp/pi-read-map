@@ -65,7 +65,7 @@ function getParser(): import("tree-sitter") | null {
   try {
     const require = createRequire(import.meta.url);
     const ParserCtor = require("tree-sitter") as typeof import("tree-sitter");
-    const Rust = require("tree-sitter-rust") as unknown;
+    const Rust = require("tree-sitter-rust") as import("tree-sitter").Language;
     ensureWritableTypeProperty(ParserCtor);
     parser = new ParserCtor();
     parser.setLanguage(Rust);

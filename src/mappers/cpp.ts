@@ -64,7 +64,7 @@ function getParser(): import("tree-sitter") | null {
   try {
     const require = createRequire(import.meta.url);
     const ParserCtor = require("tree-sitter") as typeof import("tree-sitter");
-    const CPP = require("tree-sitter-cpp") as unknown;
+    const CPP = require("tree-sitter-cpp") as import("tree-sitter").Language;
     ensureWritableTypeProperty(ParserCtor);
     parser = new ParserCtor();
     parser.setLanguage(CPP);
