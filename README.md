@@ -24,8 +24,8 @@ https://github.com/user-attachments/assets/4408f37b-b669-453f-a588-336a5332ae90
 
 - **Generates structural maps** showing symbols, classes, functions, and their exact line ranges
 - **Supports 16 languages** through specialized parsers: TypeScript, JavaScript, Python, Go, Rust, C, C++, SQL, JSON, JSONL, YAML, TOML, CSV, Markdown
-- **Compresses aggressively** to ~3-5% of original file size (a 400 KB file yields an ~18 KB map)
-- **Enforces a 20 KB budget** through progressive detail reduction
+- **Extracts structural outlines** — functions, classes, and their line ranges — typically under 1% of file size
+- **Enforces budgets** through progressive detail reduction (10 KB full → 15 KB compact → 20 KB minimal → 50 KB outline → 100 KB hard cap)
 - **Caches maps** in memory by file path and modification time for instant re-reads
 - **Falls back** from language-specific parsers to ctags to grep heuristics
 
