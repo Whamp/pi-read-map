@@ -1,5 +1,7 @@
 # pi-read-map
 
+![pi-read-map banner](banner.png)
+
 This pi extension augments the built-in `read` tool with structural file maps. When you open a file larger than 2,000 lines or 50 KB, the extension generates a map of every symbol and its line range. You navigate large codebases precisely instead of scanning sequentially.
 
 ## Why This Exists
