@@ -14,7 +14,9 @@ This pi extension augments the built-in `read` tool with structural file maps. W
 
 See `pi-read-map` in action analyzing the TypeScript compiler's 54,000-line type checker:
 
-https://github.com/Whamp/pi-read-map/blob/main/demo.mp4
+
+https://github.com/user-attachments/assets/4408f37b-b669-453f-a588-336a5332ae90
+
 
 ## What It Does
 
