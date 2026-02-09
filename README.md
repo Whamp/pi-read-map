@@ -163,6 +163,10 @@ The extension intercepts `read` calls and decides:
 - `jq` - JSON mapper
 - `universal-ctags` - Language fallback
 
+## Acknowledgments
+
+This project was inspired by and built upon the foundation of [codemap](https://github.com/kcosr/codemap) by [kcosr](https://github.com/kcosr). Check out the original project for the ideas that made this possible.
+
 ## License
 
-ISC
+MIT

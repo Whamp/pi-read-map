@@ -28,7 +28,7 @@
     "file-map"
   ],
   "author": "",
-  "license": "ISC",
+  "license": "MIT",
   "dependencies": {
     "tree-sitter": "0.22.4",
     "tree-sitter-cpp": "0.23.4",
