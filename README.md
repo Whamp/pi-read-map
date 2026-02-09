@@ -31,14 +31,12 @@ https://github.com/user-attachments/assets/4408f37b-b669-453f-a588-336a5332ae90
 
 ## Installation
 
-### From Git (Recommended)
+### From Git
 
 ```bash
 # Global install
 pi install https://github.com/Whamp/pi-read-map
 
-# Project-local install (adds to .pi/settings.json)
-pi install https://github.com/Whamp/pi-read-map -l
 ```
 
 ### From npm
