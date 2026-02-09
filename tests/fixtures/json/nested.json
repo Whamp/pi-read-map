@@ -1,0 +1,16 @@
+{
+  "database": {
+    "host": "localhost",
+    "port": 5432,
+    "name": "testdb",
+    "credentials": {
+      "username": "admin",
+      "password": "secret"
+    }
+  },
+  "server": {
+    "port": 8080,
+    "timeout": 30000
+  },
+  "features": ["auth", "logging", "cache"]
+}
