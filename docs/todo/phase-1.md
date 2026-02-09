@@ -1,7 +1,9 @@
 # Phase 1 TODO: Missing Items
 
-**Status**: Phase 1 cannot be closed until all MUST DO items are complete.  
+**Status**: Phase 1 COMPLETE ✅  
 **Last Updated**: February 8, 2026
+
+All MUST DO items completed. E2E tests passing (17 tests across 3 files).
 
 ---
 
@@ -48,11 +50,11 @@ export async function readOutput(session: PiSession): Promise<string>;
 ```
 
 **Acceptance Criteria**:
-- [ ] Can spawn pi with a custom extension loaded
-- [ ] Captures stdout/stderr to a temp file
-- [ ] Supports timeout for hanging sessions
-- [ ] Cleanup removes temp files
-- [ ] Works in CI environment (no TTY required)
+- [x] Can spawn pi with a custom extension loaded
+- [x] Captures stdout/stderr to a temp file
+- [x] Supports timeout for hanging sessions
+- [x] Cleanup removes temp files
+- [x] Works in CI environment (no TTY required)
 
 ---
 
@@ -64,14 +66,14 @@ export async function readOutput(session: PiSession): Promise<string>;
 
 Verify that reading a file exceeding thresholds (>2000 lines OR >50KB) produces a structural map.
 
-**Test Cases**:
-- [ ] Map box delimiters appear in output (`───────────────────────────────────────`)
-- [ ] "File Map:" header is present
-- [ ] File name appears in map header
-- [ ] Line ranges are present (`[start-end]` format)
-- [ ] Guidance footer appears ("Use read(path, offset=LINE, limit=N)")
-- [ ] Original file content (first 2000 lines) is still present
-- [ ] Truncation notice is present
+**Test Cases** (All passing ✅):
+- [x] Map box delimiters appear in output (`───────────────────────────────────────`)
+- [x] "File Map:" header is present
+- [x] File name appears in map header
+- [x] Line ranges are present (`[start-end]` format)
+- [x] Guidance footer appears ("Use read(path, offset=LINE, limit=N)")
+- [x] Original file content (first 2000 lines) is still present
+- [x] Truncation notice is present
 
 **Fixture**: `tests/fixtures/large/processor.py` (already exists, 137KB)
 
@@ -83,12 +85,12 @@ Verify that reading a file exceeding thresholds (>2000 lines OR >50KB) produces 
 
 Verify that reading a file within thresholds passes through unchanged (no map).
 
-**Test Cases**:
-- [ ] "File Map:" header is NOT present
-- [ ] Box delimiters are NOT present
-- [ ] Full file content is returned
-- [ ] No truncation notice
-- [ ] No guidance footer about targeted reads
+**Test Cases** (All passing ✅):
+- [x] "File Map:" header is NOT present
+- [x] Box delimiters are NOT present
+- [x] Full file content is returned
+- [x] No truncation notice
+- [x] No guidance footer about targeted reads
 
 **Fixture**: `tests/fixtures/small/hello.py` (already exists, 407 bytes)
 
@@ -100,12 +102,12 @@ Verify that reading a file within thresholds passes through unchanged (no map).
 
 Verify that targeted reads (with offset or limit parameters) pass through unchanged, even for large files.
 
-**Test Cases**:
-- [ ] `read(path, offset=100)` does NOT produce a map
-- [ ] `read(path, limit=50)` does NOT produce a map
-- [ ] `read(path, offset=100, limit=50)` does NOT produce a map
-- [ ] Content matches expected range from file
-- [ ] Works correctly for large files that would normally get mapped
+**Test Cases** (All passing ✅):
+- [x] `read(path, offset=100)` does NOT produce a map
+- [x] `read(path, limit=50)` does NOT produce a map
+- [x] `read(path, offset=100, limit=50)` does NOT produce a map
+- [x] Content matches expected range from file
+- [x] Works correctly for large files that would normally get mapped
 
 **Fixture**: `tests/fixtures/large/processor.py`
 
@@ -148,9 +150,9 @@ export class Greeter {
 ```
 
 **Acceptance Criteria**:
-- [ ] File is under 50 lines
-- [ ] File is under 50KB
-- [ ] Contains at least one class, function, and interface
+- [x] File is under 50 lines
+- [x] File is under 50KB
+- [x] Contains at least one class, function, and interface
 
 ---
 
@@ -200,9 +202,9 @@ func main() {
 ```
 
 **Acceptance Criteria**:
-- [ ] File is under 50 lines
-- [ ] File is under 50KB
-- [ ] Contains struct, function, and method definitions
+- [x] File is under 50 lines
+- [x] File is under 50KB
+- [x] Contains struct, function, and method definitions
 
 ---
 
@@ -471,14 +473,14 @@ await execAsync(`wc -l < ${shellEscape(absPath)}`, { signal });
 
 ## Checklist Summary
 
-### Phase 1 Gate (MUST DO)
-- [ ] `tests/helpers/pi-runner.ts` implemented
-- [ ] `tests/e2e/read-large-file.test.ts` passing
-- [ ] `tests/e2e/read-small-file.test.ts` passing
-- [ ] `tests/e2e/read-with-offset.test.ts` passing
-- [ ] `tests/fixtures/small/hello.ts` created
-- [ ] `tests/fixtures/small/hello.go` created
-- [ ] `npm run e2e` passes
+### Phase 1 Gate (MUST DO) - ALL COMPLETE ✅
+- [x] `tests/helpers/pi-runner.ts` implemented
+- [x] `tests/e2e/read-large-file.test.ts` passing (6 tests)
+- [x] `tests/e2e/read-small-file.test.ts` passing (5 tests)
+- [x] `tests/e2e/read-with-offset.test.ts` passing (6 tests)
+- [x] `tests/fixtures/small/hello.ts` created
+- [x] `tests/fixtures/small/hello.go` created
+- [x] `npm run test:e2e` passes (17 tests)
 
 ### Phase 2 Gate (SHOULD DO)
 - [ ] All large fixtures created

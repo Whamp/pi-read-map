@@ -10,7 +10,7 @@ This document tracks all incomplete items identified in the Phase 2 review that 
 
 **Location**: `tests/e2e/`
 
-The E2E test directory is empty. These tests verify the extension works correctly when loaded into an actual pi session.
+The E2E tests implemented (17 tests passing). These tests verify the extension works correctly when loaded into an actual pi session.
 
 #### 1.1 Pi Runner Helper
 
