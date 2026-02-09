@@ -33,4 +33,5 @@ export enum DetailLevel {
   Compact = "compact",
   Minimal = "minimal",
   Outline = "outline",
+  Truncated = "truncated",
 }

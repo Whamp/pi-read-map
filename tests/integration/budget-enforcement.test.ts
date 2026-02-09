@@ -193,4 +193,36 @@ class MyClass:
       expect(output).toContain("File Map:");
     }
   });
+
+  it("pathological file stays under 100KB budget", async () => {
+    // Use the existing fixture with 5000 functions
+    const filepath = new URL(
+      "../fixtures/pathological/many-symbols.py",
+      import.meta.url
+    ).pathname;
+    const map = await generateMap(filepath);
+
+    expect(map).not.toBeNull();
+    if (!map) {
+      return;
+    }
+
+    // Verify the file has many symbols
+    expect(map.symbols.length).toBeGreaterThanOrEqual(5000);
+
+    // Format with budget
+    const output = formatFileMapWithBudget(map);
+    const size = Buffer.byteLength(output, "utf8");
+
+    // Must stay under 100KB (truncated budget)
+    expect(size).toBeLessThanOrEqual(THRESHOLDS.MAX_TRUNCATED_BYTES);
+
+    // Should use truncated format
+    expect(output).toContain("[Map");
+    expect(output).toContain("more symbols");
+
+    // Should have first and last symbols
+    expect(output).toContain("function_0:");
+    expect(output).toContain("function_4999:");
+  });
 });

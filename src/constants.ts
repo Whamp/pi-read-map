@@ -12,4 +12,10 @@ export const THRESHOLDS = {
   FULL_TARGET_BYTES: 10 * 1024,
   /** Target size for compact detail */
   COMPACT_TARGET_BYTES: 15 * 1024,
+  /** Maximum size for outline level */
+  MAX_OUTLINE_BYTES: 50 * 1024,
+  /** Maximum size for truncated level (hard cap) */
+  MAX_TRUNCATED_BYTES: 100 * 1024,
+  /** Number of symbols to show at each end for truncated outline */
+  TRUNCATED_SYMBOLS_EACH: 50,
 } as const;

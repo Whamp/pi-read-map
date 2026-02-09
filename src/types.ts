@@ -21,6 +21,18 @@ export interface FileSymbol {
 }
 
 /**
+ * Information about truncated symbol display.
+ */
+export interface TruncatedInfo {
+  /** Total number of symbols in the original file */
+  totalSymbols: number;
+  /** Number of symbols shown in the truncated view */
+  shownSymbols: number;
+  /** Number of symbols omitted from the truncated view */
+  omittedSymbols: number;
+}
+
+/**
  * Result of generating a file map.
  */
 export interface FileMap {
@@ -38,6 +50,8 @@ export interface FileMap {
   imports?: string[];
   /** Detail level used for this map */
   detailLevel: DetailLevel;
+  /** Truncation metadata (present when symbols are truncated) */
+  truncatedInfo?: TruncatedInfo;
 }
 
 /**

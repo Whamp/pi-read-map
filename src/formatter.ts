@@ -95,8 +95,12 @@ function formatSymbols(
   for (const symbol of symbols) {
     lines.push(formatSymbol(symbol, level, indent));
 
-    // Add children for full, compact, and minimal levels (not outline)
-    if (level !== DetailLevel.Outline && symbol.children?.length) {
+    // Add children for full, compact, and minimal levels (not outline or truncated)
+    if (
+      level !== DetailLevel.Outline &&
+      level !== DetailLevel.Truncated &&
+      symbol.children?.length
+    ) {
       // For minimal, flatten children
       if (level === DetailLevel.Minimal) {
         for (const child of symbol.children) {
@@ -127,9 +131,30 @@ export function formatFileMap(map: FileMap, level?: DetailLevel): string {
     "",
   ];
 
-  // Add imports if present and not outline level
+  // Add detail level notice if reduced from Full
+  if (map.truncatedInfo) {
+    const { shownSymbols, totalSymbols } = map.truncatedInfo;
+    lines.push(
+      `[Map ≤${formatSize(THRESHOLDS.MAX_TRUNCATED_BYTES)} | ${shownSymbols} of ${formatNumber(totalSymbols)} symbols]`
+    );
+    lines.push("");
+  } else if (effectiveLevel === DetailLevel.Outline) {
+    lines.push(`[Map ≤${formatSize(THRESHOLDS.MAX_OUTLINE_BYTES)} | outline]`);
+    lines.push("");
+  } else if (effectiveLevel === DetailLevel.Minimal) {
+    lines.push(`[Map ≤${formatSize(THRESHOLDS.MAX_MAP_BYTES)} | minimal]`);
+    lines.push("");
+  } else if (effectiveLevel === DetailLevel.Compact) {
+    lines.push(
+      `[Map ≤${formatSize(THRESHOLDS.COMPACT_TARGET_BYTES)} | compact]`
+    );
+    lines.push("");
+  }
+
+  // Add imports if present and not outline or truncated level
   if (
     effectiveLevel !== DetailLevel.Outline &&
+    effectiveLevel !== DetailLevel.Truncated &&
     map.imports?.length &&
     map.imports.length > 0
   ) {
@@ -142,13 +167,54 @@ export function formatFileMap(map: FileMap, level?: DetailLevel): string {
   }
 
   // Add symbols
-  const symbolLines = formatSymbols(map.symbols, effectiveLevel);
-  lines.push(...symbolLines);
+  if (map.truncatedInfo) {
+    // Truncated format: first half, separator, second half
+    const half = Math.floor(map.symbols.length / 2);
+    const firstSymbols = map.symbols.slice(0, half);
+    const lastSymbols = map.symbols.slice(half);
 
-  // Add footer
+    // Format first batch
+    const firstLines = formatSymbols(firstSymbols, effectiveLevel);
+    lines.push(...firstLines);
+
+    // Add separator
+    lines.push("");
+    lines.push(
+      `  ─ ─ ─ ${formatNumber(map.truncatedInfo.omittedSymbols)} more symbols ─ ─ ─`
+    );
+    lines.push("");
+
+    // Format last batch
+    const lastLines = formatSymbols(lastSymbols, effectiveLevel);
+    lines.push(...lastLines);
+  } else {
+    // Normal format
+    const symbolLines = formatSymbols(map.symbols, effectiveLevel);
+    lines.push(...symbolLines);
+  }
+
+  // Add footer with appropriate guidance
   lines.push("");
   lines.push(BOX_LINE);
-  lines.push("Use read(path, offset=LINE, limit=N) for targeted reads.");
+  if (map.truncatedInfo) {
+    // For truncated maps, provide specific guidance on finding omitted symbols
+    const firstShown = map.symbols.slice(0, Math.floor(map.symbols.length / 2));
+    const lastShown = map.symbols.slice(Math.floor(map.symbols.length / 2));
+    const lastFirst = firstShown.at(-1);
+    const firstLast = lastShown.at(0);
+    if (lastFirst && firstLast) {
+      const omitStart = lastFirst.endLine + 1;
+      const omitEnd = firstLast.startLine - 1;
+      lines.push(
+        `Omitted symbols are in lines ${formatNumber(omitStart)}-${formatNumber(omitEnd)}.`
+      );
+    }
+    lines.push(
+      "Use read(path, offset=LINE, limit=N) to view specific sections."
+    );
+  } else {
+    lines.push("Use read(path, offset=LINE, limit=N) for targeted reads.");
+  }
   lines.push(BOX_LINE);
 
   return lines.join("\n");
@@ -233,31 +299,116 @@ function stripSignatures(symbol: FileSymbol): FileSymbol {
 }
 
 /**
+ * Reduce a file map to truncated form: first N + last N symbols only.
+ * Used when even Outline level exceeds budget.
+ */
+export function reduceToTruncated(
+  map: FileMap,
+  symbolsEach: number = THRESHOLDS.TRUNCATED_SYMBOLS_EACH
+): FileMap {
+  const { symbols } = map;
+  const total = symbols.length;
+
+  if (total <= symbolsEach * 2) {
+    // Not enough symbols to truncate, return as outline
+    return reduceToLevel(map, DetailLevel.Outline);
+  }
+
+  const firstSymbols = symbols.slice(0, symbolsEach).map((s) => ({
+    name: s.name,
+    kind: s.kind,
+    startLine: s.startLine,
+    endLine: s.endLine,
+  }));
+
+  const lastSymbols = symbols.slice(-symbolsEach).map((s) => ({
+    name: s.name,
+    kind: s.kind,
+    startLine: s.startLine,
+    endLine: s.endLine,
+  }));
+
+  return {
+    ...map,
+    symbols: [...firstSymbols, ...lastSymbols],
+    detailLevel: DetailLevel.Truncated,
+    imports: undefined,
+    truncatedInfo: {
+      totalSymbols: total,
+      shownSymbols: symbolsEach * 2,
+      omittedSymbols: total - symbolsEach * 2,
+    },
+  };
+}
+
+/**
  * Format a file map with automatic budget enforcement.
  * Reduces detail level until the map fits within the budget.
  */
 export function formatFileMapWithBudget(
   map: FileMap,
-  maxBytes = THRESHOLDS.MAX_MAP_BYTES
+  maxBytes = THRESHOLDS.MAX_TRUNCATED_BYTES
 ): string {
-  const levels: DetailLevel[] = [
-    DetailLevel.Full,
-    DetailLevel.Compact,
-    DetailLevel.Minimal,
-    DetailLevel.Outline,
+  // Tiered budgets: progressively reduce detail level
+  const tiers: { level: DetailLevel; budget: number }[] = [
+    { level: DetailLevel.Full, budget: THRESHOLDS.FULL_TARGET_BYTES },
+    { level: DetailLevel.Compact, budget: THRESHOLDS.COMPACT_TARGET_BYTES },
+    { level: DetailLevel.Minimal, budget: THRESHOLDS.MAX_MAP_BYTES },
+    { level: DetailLevel.Outline, budget: THRESHOLDS.MAX_OUTLINE_BYTES },
   ];
 
-  for (const level of levels) {
+  for (const { level, budget } of tiers) {
     const reduced = reduceToLevel(map, level);
     const formatted = formatFileMap(reduced, level);
     const size = Buffer.byteLength(formatted, "utf8");
 
-    if (size <= maxBytes) {
+    if (size <= budget && size <= maxBytes) {
       return formatted;
     }
   }
 
-  // If even outline doesn't fit, return it anyway (guaranteed minimum)
+  // Outline exceeded budget - need to truncate symbols
+  // First check if full outline fits in maxBytes (just not in outline budget)
   const outline = reduceToLevel(map, DetailLevel.Outline);
-  return formatFileMap(outline, DetailLevel.Outline);
+  const outlineFormatted = formatFileMap(outline, DetailLevel.Outline);
+  const outlineSize = Buffer.byteLength(outlineFormatted, "utf8");
+
+  if (outlineSize <= maxBytes) {
+    // Outline fits in truncated budget, use it
+    return outlineFormatted;
+  }
+
+  // Need to truncate - binary search for maximum symbols that fit
+  const totalSymbols = map.symbols.length;
+  const minSymbols = 10; // Guaranteed minimum
+  const maxSymbolsEach = Math.floor(totalSymbols / 2); // Can't show more than half on each side
+
+  let low = minSymbols;
+  let high = maxSymbolsEach;
+  let bestResult: string | null = null;
+
+  while (low <= high) {
+    const mid = Math.floor((low + high) / 2);
+    const truncated = reduceToTruncated(map, mid);
+    const formatted = formatFileMap(truncated, DetailLevel.Truncated);
+    const size = Buffer.byteLength(formatted, "utf8");
+
+    if (size <= maxBytes) {
+      // This fits, try to show more
+      bestResult = formatted;
+      low = mid + 1;
+    } else {
+      // Too big, show fewer
+      high = mid - 1;
+    }
+  }
+
+  // Return best result or fallback to minimum
+  if (bestResult) {
+    return bestResult;
+  }
+
+  // Absolute fallback: minimum symbols (guaranteed to fit)
+  const minimal = reduceToTruncated(map, minSymbols);
+  return formatFileMap(minimal, DetailLevel.Truncated);
 }
