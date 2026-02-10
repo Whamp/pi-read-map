@@ -27,3 +27,4 @@ coverage/
 # Temp files
 *.log
 *.tmp
+.pi/tmp/

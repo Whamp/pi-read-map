@@ -1,99 +1,149 @@
 # AGENTS.md
 
-> Last updated: 2026-02-09
+> Last updated: 2026-02-10
 
-A pi extension that generates structural file maps for large files, enabling targeted reads instead of sequential scanning.
+Pi extension that augments the built-in `read` tool with structural file maps for large files (>2,000 lines or >50 KB). Intercepts `read` calls, generates symbol maps via language-specific parsers, and sends them as separate `file-map` messages after the tool result.
 
-## Commands
+## Commands (verified 2026-02-10)
 
 | Command | Purpose | ~Time |
 |---------|---------|-------|
-| `npm run validate` | Typecheck + lint + format + dead-code | 15s |
-| `npm test` | Unit + integration tests | 10s |
-| `npm run test:e2e` | E2E tests (spawns pi processes) | 60s |
-| `npm run typecheck` | TypeScript type checking | 5s |
-| `npm run lint` | oxlint | 2s |
-| `npm run format` | oxfmt | 2s |
+| `npm run test` | Unit + integration tests (vitest) | ~2s |
+| `npm run test:integration` | Integration tests only | ~1s |
+| `npm run test:e2e` | E2E tests (requires pi + tmux) | ~60s |
+| `npm run bench` | Benchmarks | ~5s |
+| `npm run typecheck` | `tsc --noEmit` | ~2s |
+| `npm run lint` | oxlint (via npx) | ~1s |
+| `npm run lint:fix` | Auto-fix lint issues | ~1s |
+| `npm run format` | Format with oxfmt | ~1s |
+| `npm run format:check` | Check formatting | ~1s |
+| `npm run validate` | typecheck + lint + format:check | ~4s |
 
 ## File Map
 
 ```
-src/           → Extension core: entry, dispatcher, formatter, types
-src/mappers/   → 16 language-specific parsers (typescript, rust, python, etc.)
-scripts/       → External AST tools (python_outline.py, go_outline.go)
-tests/unit/    → Mapper and utility tests
-tests/integration/ → Dispatch, caching, budget tests
-tests/e2e/     → Real pi session tests via process spawn
-tests/fixtures/ → Sample files per language
-docs/          → Plans, handoffs, reviews, todos
+src/
+├── index.ts              → Extension entry: tool registration, caching, message rendering
+├── mapper.ts             → Dispatcher: routes files to language mappers, fallback chain
+├── formatter.ts          → Budget-aware formatting with progressive detail reduction
+├── language-detect.ts    → File extension → language mapping
+├── types.ts              → FileMap, FileSymbol, MapOptions, FileMapMessageDetails
+├── enums.ts              → SymbolKind (21 kinds), DetailLevel (5 levels)
+├── constants.ts          → THRESHOLDS: lines, bytes, budget tiers
+└── mappers/              → One mapper per language (16 total)
+    ├── typescript.ts     → ts-morph (handles TS + JS)
+    ├── rust.ts           → tree-sitter-rust
+    ├── cpp.ts            → tree-sitter-cpp (C++ and .h files)
+    ├── python.ts         → subprocess: scripts/python_outline.py
+    ├── go.ts             → subprocess: scripts/go_outline.go
+    ├── json.ts           → subprocess: jq
+    ├── c.ts              → Regex patterns
+    ├── sql.ts            → Regex
+    ├── markdown.ts       → Regex
+    ├── yaml.ts           → Regex
+    ├── toml.ts           → Regex
+    ├── csv.ts            → In-process streaming
+    ├── jsonl.ts          → In-process streaming
+    ├── ctags.ts          → universal-ctags fallback
+    └── fallback.ts       → Grep-based final fallback
+
+scripts/
+├── python_outline.py     → Python AST extraction (called by python mapper)
+├── go_outline.go         → Go AST extraction (compiled on first use)
+└── go_outline             → Compiled Go binary
+
+tests/
+├── unit/                 → Mapper tests, formatter tests, language detection
+├── integration/          → Dispatch, caching, budget enforcement, map messages
+├── e2e/                  → Real pi sessions via tmux (vitest.e2e.config.ts)
+├── fixtures/             → Sample files per language
+├── benchmarks/           → Mapper performance benchmarks
+└── helpers/              → Test utilities (pi-runner, constants, models)
+
+docs/
+├── plans/                → Implementation plans (phased)
+├── handoffs/             → Session handoff notes
+├── reviews/              → Phase review documents
+└── todo/                 → Outstanding work items
 ```
-
-## Entry Point
-
-`src/index.ts` — Registers `read` tool override, manages caching, renders file-map messages
-
-## Key Files
-
-| File | Purpose |
-|------|---------|
-| `src/index.ts` | Extension entry: tool registration, caching, message rendering |
-| `src/mapper.ts` | Dispatcher: routes to language mappers with fallback chain |
-| `src/formatter.ts` | Budget-aware formatting with progressive detail reduction |
-| `src/constants.ts` | Thresholds: 2K lines, 50 KB trigger; 10-100 KB budget tiers |
-| `src/types.ts` | FileMap, FileSymbol, MapOptions interfaces |
-| `src/enums.ts` | SymbolKind (22 kinds), DetailLevel (5 levels) |
-| `src/mappers/typescript.ts` | ts-morph parser for TS/JS |
-| `src/mappers/rust.ts` | tree-sitter parser for Rust |
-| `src/mappers/ctags.ts` | Universal ctags fallback |
-| `src/mappers/fallback.ts` | Grep-based heuristics as final fallback |
 
 ## Architecture
 
-**Pipeline with fallback chain:**
+Dispatch chain: `index.ts` → `mapper.ts` → language mapper → ctags → fallback.
 
-1. `read(path)` called by agent
-2. If offset/limit provided OR file ≤2K lines AND ≤50 KB → delegate to built-in read
-3. Otherwise: detect language → try mapper → ctags → grep fallback
-4. Format map with budget enforcement, cache by path+mtime
-5. Return content + file-map message
+Budget enforcement in `formatter.ts` uses progressive detail reduction:
+- 10 KB: full detail (signatures, modifiers)
+- 15 KB: compact (drop signatures)
+- 20 KB: minimal (names + line ranges only)
+- 50 KB: outline (top-level symbols only)
+- 100 KB: truncated (first/last 50 symbols, hard cap)
 
-**Budget tiers:** Full (≤10 KB) → Compact (≤15 KB) → Minimal (≤20 KB) → Outline (≤50 KB) → Truncated (≤100 KB)
+Maps are cached in-memory by `(filePath, mtime)`. Delivered as custom `file-map` messages via `pi.sendMessage()` after the `tool_result` event.
 
-## Patterns
+## Golden Samples
 
-- **Error handling:** Mappers return `null` on failure; dispatcher falls through
-- **Lazy loading:** ts-morph, tree-sitter load on first use
-- **Caching:** In-memory Map keyed by path; mtime invalidation
-- **Subprocess mappers:** Python/Go use external scripts; Go compiles on first use
-- **Naming:** camelCase functions, PascalCase types, SCREAMING_SNAKE constants
-
-## Testing
-
-- **Unit:** Verify individual mappers produce correct symbols
-- **Integration:** Verify dispatch routing and budget enforcement
-- **E2E:** Spawn actual pi processes in JSON mode, parse output
+| For | Reference | Key patterns |
+|-----|-----------|--------------|
+| New mapper | `src/mappers/csv.ts` | Simple, clean, regex-free in-process parsing |
+| Complex mapper | `src/mappers/typescript.ts` | ts-morph AST walk, nested symbols, modifiers |
+| Subprocess mapper | `src/mappers/python.ts` | Calls external script, parses JSON output |
+| Unit test | `tests/unit/mappers/csv.test.ts` | Fixture-based, edge cases, null returns |
+| Integration test | `tests/integration/budget-enforcement.test.ts` | Tests progressive detail reduction |
 
 ## Heuristics
 
 | When | Do |
 |------|-----|
-| Adding a mapper | Create `src/mappers/<lang>.ts`, add to `src/mapper.ts` dispatch, add fixture |
-| Changing thresholds | Update `src/constants.ts` THRESHOLDS object |
-| Testing new language | Add fixture to `tests/fixtures/`, write unit test |
-| Debugging map output | Run `npm test -- --grep "<mapper>"` to isolate |
+| Adding a new language | Create `src/mappers/<lang>.ts`, add to `MAPPERS` in `mapper.ts`, add extension in `language-detect.ts`, add unit test |
+| Mapper returns too many symbols | Rely on `formatter.ts` budget system, don't filter in mappers |
+| Mapper can't parse a file | Return `null` — the dispatch chain falls through to ctags then fallback |
+| Adding a new SymbolKind | Add to `enums.ts`, update formatter if display differs |
+| Testing mappers | Use fixture files in `tests/fixtures/`, never mock file reads |
+| E2E tests | Require pi installed + tmux; use `tests/helpers/pi-runner.ts` |
 
 ## Boundaries
 
 **Always:**
+- Return `FileMap` or `null` from mappers (never throw)
+- Include `startLine` and `endLine` for every symbol (1-indexed)
 - Run `npm run validate` before committing
-- Add tests for new mappers
-- Return `null` from mappers on parse failure (never throw)
+- Use existing `FileSymbol` interface for all symbol data
+
+**Ask first:**
+- Changing budget thresholds in `constants.ts`
+- Adding new `DetailLevel` variants
+- Modifying the tool description in `index.ts`
+- Changes to the `tool_result` event handler
 
 **Never:**
-- Disable linter rules
-- Remove or weaken tests
+- Filter symbols in mappers based on budget (formatter handles this)
+- Add runtime dependencies without discussing (binary size matters for pi extensions)
 - Use `any` types
+- Disable lint rules
+
+## Codebase State
+
+- `oxlint` not installed globally; works via `npx` (172 lint findings at info level, exit 0)
+- `tree-sitter` pinned to 0.22.4 due to peer dependency conflicts (see `docs/todo/upgrade-tree-sitter-0.26.md`)
+- Go outline script auto-compiles on first use; compiled binary checked in at `scripts/go_outline`
+- Phase 1-4 of implementation plan complete; remaining TODOs in `docs/todo/`
+
+## Terminology
+
+| Term | Means |
+|------|-------|
+| Map | Structural outline of a file's symbols with line ranges |
+| Mapper | Language-specific parser that produces a `FileMap` |
+| Budget | Maximum byte size for formatted map output |
+| Detail level | How much information each symbol carries (full → truncated) |
+| Fallback chain | mapper → ctags → grep when parsers fail |
+| Pending map | Map waiting to be sent after `tool_result` event fires |
 
 ## Tech Stack
 
-TypeScript, ts-morph, tree-sitter, Vitest, oxlint/oxfmt
+- **Runtime:** Node.js (ES2022 modules)
+- **Language:** TypeScript (strict, `noUncheckedIndexedAccess`)
+- **Testing:** Vitest (unit/integration: 10s timeout, e2e: 60s timeout)
+- **Linting:** oxlint + oxfmt
+- **Parsing:** ts-morph, tree-sitter, regex, subprocess (Python/Go/jq)
+- **Framework:** pi extension API (`@mariozechner/pi-coding-agent`)

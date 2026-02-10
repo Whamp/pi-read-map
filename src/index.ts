@@ -2,6 +2,7 @@ import type { ExtensionAPI, Theme } from "@mariozechner/pi-coding-agent";
 
 import {
   createReadTool,
+  createLsTool,
   DEFAULT_MAX_LINES,
   DEFAULT_MAX_BYTES,
 } from "@mariozechner/pi-coding-agent";
@@ -64,6 +65,9 @@ export default function piReadMapExtension(pi: ExtensionAPI): void {
 
   // Create the built-in read tool to delegate to
   const builtInRead = createReadTool(cwd);
+
+  // Create the built-in ls tool for directory fallback
+  const builtInLs = createLsTool(cwd);
 
   // Register tool_result handler to send pending maps
   pi.on("tool_result", (event, _ctx) => {
@@ -168,8 +172,29 @@ export default function piReadMapExtension(pi: ExtensionAPI): void {
         return builtInRead.execute(toolCallId, params, signal, onUpdate);
       }
 
-      // For small files or non-regular files, delegate directly
+      // For non-regular files, handle appropriately
       if (!stats.isFile()) {
+        if (stats.isDirectory()) {
+          // Run the built-in ls tool and prefix with a notice
+          const lsResult = await builtInLs.execute(
+            toolCallId,
+            { path: inputPath },
+            signal,
+          );
+          const lsText = lsResult.content
+            .filter((c): c is { type: "text"; text: string } => c.type === "text")
+            .map((c) => c.text)
+            .join("\n");
+          return {
+            content: [
+              {
+                type: "text" as const,
+                text: `read was called on a directory, not a file. Here is ls:\n${lsText}`,
+              },
+            ],
+            details: undefined,
+          };
+        }
         return builtInRead.execute(toolCallId, params, signal, onUpdate);
       }
 
