@@ -11,7 +11,7 @@
 import { join } from "node:path";
 import { afterAll, afterEach, describe, expect, it } from "vitest";
 
-import { MODELS, PROVIDER } from "../helpers/models.js";
+import { MODELS, PROVIDER } from "../helpers/constants.js";
 import {
   cleanupE2ETempFiles,
   FILE_MAP_DELIMITER,

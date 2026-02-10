@@ -1,0 +1,1 @@
+npm run validate && npm run test -- --exclude='**/e2e/**'

@@ -14,12 +14,15 @@
     "lint:fix": "oxlint -c .oxlintrc.json src tests --fix",
     "format": "oxfmt --config .oxfmtrc.jsonc src tests",
     "format:check": "oxfmt --config .oxfmtrc.jsonc src tests --check",
-    "validate": "npm run typecheck && npm run lint && npm run format:check",
+    "dead-code": "knip",
+    "duplicates": "jscpd src --min-tokens 50 --min-lines 5",
+    "validate": "npm run typecheck && npm run lint && npm run format:check && npm run dead-code",
     "test": "vitest run",
     "test:watch": "vitest",
     "test:integration": "vitest run tests/integration/",
     "test:e2e": "vitest run --config vitest.e2e.config.ts",
-    "bench": "vitest bench"
+    "bench": "vitest bench",
+    "prepare": "husky"
   },
   "keywords": [
     "pi-package",
@@ -50,6 +53,10 @@
     "@mariozechner/pi-coding-agent": "^0.52.9",
     "@sinclair/typebox": "^0.34.0",
     "@types/node": "^22.0.0",
+    "husky": "^9.1.7",
+    "jscpd": "^4.0.8",
+    "knip": "^5.83.1",
+    "lint-staged": "^16.2.7",
     "oxfmt": "^0.28.0",
     "typescript": "^5.7.0",
     "ultracite": "^7.1.5",
@@ -57,5 +64,11 @@
   },
   "overrides": {
     "tree-sitter": "$tree-sitter"
+  },
+  "lint-staged": {
+    "*.ts": [
+      "oxlint -c .oxlintrc.json",
+      "oxfmt --config .oxfmtrc.jsonc --check"
+    ]
   }
 }

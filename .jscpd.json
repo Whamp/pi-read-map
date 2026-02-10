@@ -1,0 +1,7 @@
+{
+  "threshold": 15,
+  "minTokens": 50,
+  "minLines": 5,
+  "reporters": ["console"],
+  "ignore": ["**/fixtures/**", "**/node_modules/**"]
+}
