@@ -1,4 +1,4 @@
-import { describe, it, expect, vi } from "vitest";
+import { describe, it, expect, expectTypeOf, vi } from "vitest";
 
 import piReadMapExtension from "../../src/index.js";
 
@@ -16,7 +16,7 @@ function createMockPi() {
 
 describe("extension loading", () => {
   it("exports a default function", () => {
-    expect(typeof piReadMapExtension).toBe("function");
+    expectTypeOf(piReadMapExtension).toBeFunction();
   });
 
   it("registers the read tool when called", () => {
@@ -58,7 +58,7 @@ describe("extension loading", () => {
     const registeredTool = mockPi.registerTool.mock.calls[0]?.[0];
 
     expect(registeredTool).toBeDefined();
-    expect(typeof registeredTool.execute).toBe("function");
+    expect(registeredTool.execute).toBeTypeOf("function");
     // Verify it's an async function (returns a Promise when called)
     expect(registeredTool.execute.constructor.name).toBe("AsyncFunction");
   });

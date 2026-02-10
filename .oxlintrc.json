@@ -4,6 +4,8 @@
   "ignorePatterns": ["docs/", "node_modules/", "**/fixtures/**"],
   "jsPlugins": ["@factory/eslint-plugin"],
   "rules": {
+    "eslint-plugin-import/no-relative-parent-imports": "off",
+    "eslint-plugin-import/no-nodejs-modules": "off",
     "typescript/consistent-type-imports": "off",
     "eslint-plugin-unicorn/no-array-sort": "off",
     "eslint/max-statements": ["warn", { "max": 60 }],

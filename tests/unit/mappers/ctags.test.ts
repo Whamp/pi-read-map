@@ -1,4 +1,4 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, expectTypeOf, it } from "vitest";
 
 import { DetailLevel } from "../../../src/enums.js";
 import {
@@ -11,7 +11,7 @@ describe("ctagsMapper", () => {
   it("isCtagsAvailable returns boolean", async () => {
     resetCtagsCache();
     const available = await isCtagsAvailable();
-    expect(typeof available).toBe("boolean");
+    expectTypeOf(available).toBeBoolean();
   });
 
   it("caches ctags availability check", async () => {
