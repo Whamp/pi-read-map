@@ -6,7 +6,6 @@
   "ignoreDependencies": [
     "@factory/eslint-plugin",
     "ultracite",
-    "@mariozechner/pi-tui",
-    "lint-staged"
+    "@mariozechner/pi-tui"
   ]
 }
