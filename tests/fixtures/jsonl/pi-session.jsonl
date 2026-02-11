@@ -1,0 +1,22 @@
+{"type":"session","version":3,"id":"test-session-001","timestamp":"2026-01-15T10:00:00.000Z","cwd":"/home/test/project"}
+{"type":"model_change","id":"mc01","parentId":null,"timestamp":"2026-01-15T10:00:00.100Z","provider":"anthropic","modelId":"claude-sonnet-4-20250514"}
+{"type":"thinking_level_change","id":"tl01","parentId":"mc01","timestamp":"2026-01-15T10:00:00.200Z","thinkingLevel":"high"}
+{"type":"message","id":"m01","parentId":"tl01","timestamp":"2026-01-15T10:00:01.000Z","message":{"role":"user","content":"Fix the login bug in auth.ts"}}
+{"type":"message","id":"m02","parentId":"m01","timestamp":"2026-01-15T10:00:05.000Z","message":{"role":"assistant","content":[{"type":"text","text":"I'll look at the auth.ts file."}],"provider":"anthropic","model":"claude-sonnet-4-20250514","usage":{"input":100,"output":50}}}
+{"type":"message","id":"m03","parentId":"m02","timestamp":"2026-01-15T10:00:06.000Z","message":{"role":"toolResult","toolCallId":"tc01","toolName":"read","content":[{"type":"text","text":"file contents..."}],"isError":false}}
+{"type":"message","id":"m04","parentId":"m03","timestamp":"2026-01-15T10:00:10.000Z","message":{"role":"assistant","content":[{"type":"text","text":"I see the bug. Let me fix it."}],"provider":"anthropic","model":"claude-sonnet-4-20250514","usage":{"input":200,"output":80}}}
+{"type":"message","id":"m05","parentId":"m04","timestamp":"2026-01-15T10:00:11.000Z","message":{"role":"toolResult","toolCallId":"tc02","toolName":"edit","content":[{"type":"text","text":"edited file"}],"isError":false}}
+{"type":"message","id":"m06","parentId":"m05","timestamp":"2026-01-15T10:00:15.000Z","message":{"role":"assistant","content":[{"type":"text","text":"Fixed the login bug."}],"provider":"anthropic","model":"claude-sonnet-4-20250514","usage":{"input":300,"output":40}}}
+{"type":"message","id":"m07","parentId":"m06","timestamp":"2026-01-15T10:00:20.000Z","message":{"role":"user","content":"Now add unit tests for the fix"}}
+{"type":"message","id":"m08","parentId":"m07","timestamp":"2026-01-15T10:00:25.000Z","message":{"role":"assistant","content":[{"type":"text","text":"I'll write tests for the auth module."}],"provider":"anthropic","model":"claude-sonnet-4-20250514","usage":{"input":400,"output":100}}}
+{"type":"message","id":"m09","parentId":"m08","timestamp":"2026-01-15T10:00:26.000Z","message":{"role":"toolResult","toolCallId":"tc03","toolName":"write","content":[{"type":"text","text":"wrote test file"}],"isError":false}}
+{"type":"message","id":"m10","parentId":"m09","timestamp":"2026-01-15T10:00:30.000Z","message":{"role":"assistant","content":[{"type":"text","text":"Tests are passing."}],"provider":"anthropic","model":"claude-sonnet-4-20250514","usage":{"input":500,"output":30}}}
+{"type":"compaction","id":"c01","parentId":"m10","timestamp":"2026-01-15T10:01:00.000Z","summary":"Fixed login bug in auth.ts and added unit tests.","firstKeptEntryId":"m10","tokensBefore":5000}
+{"type":"message","id":"m11","parentId":"c01","timestamp":"2026-01-15T10:01:05.000Z","message":{"role":"user","content":"Can you also add integration tests?"}}
+{"type":"model_change","id":"mc02","parentId":"m11","timestamp":"2026-01-15T10:01:06.000Z","provider":"openai","modelId":"o3"}
+{"type":"message","id":"m12","parentId":"mc02","timestamp":"2026-01-15T10:01:10.000Z","message":{"role":"assistant","content":[{"type":"text","text":"Sure, I'll add integration tests."}],"provider":"openai","model":"o3","usage":{"input":600,"output":200}}}
+{"type":"message","id":"m13","parentId":"m12","timestamp":"2026-01-15T10:01:11.000Z","message":{"role":"toolResult","toolCallId":"tc04","toolName":"bash","content":[{"type":"text","text":"test output..."}],"isError":false}}
+{"type":"message","id":"m14","parentId":"m13","timestamp":"2026-01-15T10:01:15.000Z","message":{"role":"assistant","content":[{"type":"text","text":"Integration tests added and passing."}],"provider":"openai","model":"o3","usage":{"input":700,"output":50}}}
+{"type":"session_info","id":"si01","parentId":"m14","timestamp":"2026-01-15T10:01:20.000Z","name":"Fix login bug and add tests"}
+{"type":"message","id":"m15","parentId":"si01","timestamp":"2026-01-15T10:01:25.000Z","message":{"role":"user","content":"Great work, thanks!"}}
+{"type":"message","id":"m16","parentId":"m15","timestamp":"2026-01-15T10:01:30.000Z","message":{"role":"assistant","content":[{"type":"text","text":"You're welcome!"}],"provider":"openai","model":"o3","usage":{"input":100,"output":20}}}

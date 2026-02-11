@@ -179,10 +179,12 @@ export default function piReadMapExtension(pi: ExtensionAPI): void {
           const lsResult = await builtInLs.execute(
             toolCallId,
             { path: inputPath },
-            signal,
+            signal
           );
           const lsText = lsResult.content
-            .filter((c): c is { type: "text"; text: string } => c.type === "text")
+            .filter(
+              (c): c is { type: "text"; text: string } => c.type === "text"
+            )
             .map((c) => c.text)
             .join("\n");
           return {

@@ -1,7 +1,7 @@
-import { mkdir, rm, writeFile } from "node:fs/promises";
-import { join } from "node:path";
 import { randomUUID } from "node:crypto";
+import { mkdir, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
+import { join } from "node:path";
 import { describe, it, expect, afterAll, vi } from "vitest";
 
 import piReadMapExtension from "../../src/index.js";
@@ -9,9 +9,7 @@ import piReadMapExtension from "../../src/index.js";
 const TEMP_BASE = join(tmpdir(), "pi-read-map-dir-test");
 const createdDirs = new Set<string>();
 
-async function createTempDir(
-  files?: Record<string, string>
-): Promise<string> {
+async function createTempDir(files?: Record<string, string>): Promise<string> {
   const dir = join(TEMP_BASE, randomUUID().slice(0, 8));
   await mkdir(dir, { recursive: true });
   createdDirs.add(dir);
@@ -29,9 +27,7 @@ async function createTempDir(
 afterAll(async () => {
   const dirs = [...createdDirs];
   createdDirs.clear();
-  await Promise.all(
-    dirs.map((d) => rm(d, { recursive: true, force: true }))
-  );
+  await Promise.all(dirs.map((d) => rm(d, { recursive: true, force: true })));
 });
 
 function createMockPi() {
