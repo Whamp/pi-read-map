@@ -123,7 +123,7 @@ Maps are cached in-memory by `(filePath, mtime)`. Delivered as custom `file-map`
 
 ## Codebase State
 
-- `oxlint` not installed globally; works via `npx` (172 lint findings at info level, exit 0)
+- `oxlint` installed as devDependency; `npm run lint` exits non-zero due to 18 pre-existing errors + 3 warnings in `src/mappers/jsonl.ts` and `tests/unit/mappers/jsonl-session.test.ts`
 - `tree-sitter` pinned to 0.22.4 due to peer dependency conflicts (see `docs/todo/upgrade-tree-sitter-0.26.md`)
 - Go outline script auto-compiles on first use; compiled binary checked in at `scripts/go_outline`
 - Phase 1-4 of implementation plan complete; remaining TODOs in `docs/todo/`
