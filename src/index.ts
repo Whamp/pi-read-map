@@ -35,6 +35,12 @@ const pendingMaps = new Map<
   }
 >();
 
+// Pending directory listings waiting to be sent after a read-on-directory error
+const pendingDirectoryLs = new Map<
+  string,
+  { path: string; listing: string }
+>();
+
 /**
  * Reset the map cache. Exported for testing purposes only.
  */
@@ -47,6 +53,7 @@ export function resetMapCache(): void {
  */
 export function resetPendingMaps(): void {
   pendingMaps.clear();
+  pendingDirectoryLs.clear();
 }
 
 /**
@@ -69,10 +76,21 @@ export default function piReadMapExtension(pi: ExtensionAPI): void {
   // Create the built-in ls tool for directory fallback
   const builtInLs = createLsTool(cwd);
 
-  // Register tool_result handler to send pending maps
+  // Register tool_result handler to send pending maps and directory listings
   pi.on("tool_result", (event, _ctx) => {
     if (event.toolName !== "read") {
       return;
+    }
+
+    // Send pending directory listing after read-on-directory error
+    const pendingLs = pendingDirectoryLs.get(event.toolCallId);
+    if (pendingLs) {
+      pi.sendMessage({
+        customType: "directory-listing",
+        content: `${pendingLs.path} is a directory. Here is ls:\n${pendingLs.listing}`,
+        display: true,
+      });
+      pendingDirectoryLs.delete(event.toolCallId);
     }
 
     const pending = pendingMaps.get(event.toolCallId);
@@ -175,27 +193,28 @@ export default function piReadMapExtension(pi: ExtensionAPI): void {
       // For non-regular files, handle appropriately
       if (!stats.isFile()) {
         if (stats.isDirectory()) {
-          // Run the built-in ls tool and prefix with a notice
-          const lsResult = await builtInLs.execute(
-            toolCallId,
-            { path: inputPath },
-            signal
-          );
-          const lsText = lsResult.content
-            .filter(
-              (c): c is { type: "text"; text: string } => c.type === "text"
-            )
-            .map((c) => c.text)
-            .join("\n");
-          return {
-            content: [
-              {
-                type: "text" as const,
-                text: `read was called on a directory, not a file. Here is ls:\n${lsText}`,
-              },
-            ],
-            details: undefined,
-          };
+          // Get ls output before letting the error propagate
+          try {
+            const lsResult = await builtInLs.execute(
+              toolCallId,
+              { path: inputPath },
+              signal
+            );
+            const lsText = lsResult.content
+              .filter(
+                (c): c is { type: "text"; text: string } => c.type === "text"
+              )
+              .map((c) => c.text)
+              .join("\n");
+            pendingDirectoryLs.set(toolCallId, {
+              path: absPath,
+              listing: lsText,
+            });
+          } catch {
+            // best-effort: if ls fails, just let the error through without listing
+          }
+          // Delegate to built-in read which will throw EISDIR
+          return builtInRead.execute(toolCallId, params, signal, onUpdate);
         }
         return builtInRead.execute(toolCallId, params, signal, onUpdate);
       }
