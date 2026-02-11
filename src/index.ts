@@ -36,10 +36,7 @@ const pendingMaps = new Map<
 >();
 
 // Pending directory listings waiting to be sent after a read-on-directory error
-const pendingDirectoryLs = new Map<
-  string,
-  { path: string; listing: string }
->();
+const pendingDirectoryLs = new Map<string, { path: string; listing: string }>();
 
 /**
  * Reset the map cache. Exported for testing purposes only.

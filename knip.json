@@ -3,7 +3,6 @@
   "entry": ["src/index.ts"],
   "project": ["src/**/*.ts"],
   "ignore": ["scripts/**", "tests/fixtures/**"],
-  "ignoreBinaries": ["oxlint"],
   "ignoreDependencies": [
     "@factory/eslint-plugin",
     "ultracite",

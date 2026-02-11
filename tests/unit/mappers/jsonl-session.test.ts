@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { DetailLevel, SymbolKind } from "../../../src/enums.js";
+import { SymbolKind } from "../../../src/enums.js";
 import { jsonlMapper } from "../../../src/mappers/jsonl.js";
 
 const FIXTURE_DIR = `${import.meta.dirname}/../../fixtures/jsonl`;
@@ -72,7 +72,9 @@ describe("jsonlMapper — pi session detection", () => {
 
     // Each turn's endLine should be < next turn's startLine
     for (let i = 0; i < (userTurns?.length ?? 0) - 1; i++) {
-      expect(userTurns![i]!.endLine).toBeLessThan(userTurns![i + 1]!.startLine);
+      expect(userTurns?.[i]?.endLine).toBeLessThan(
+        userTurns?.[i + 1]?.startLine ?? 0
+      );
     }
   });
 
@@ -125,8 +127,8 @@ describe("jsonlMapper — pi session detection", () => {
     const result = await jsonlMapper(`${FIXTURE_DIR}/pi-session.jsonl`);
 
     for (let i = 0; i < (result?.symbols.length ?? 0) - 1; i++) {
-      expect(result!.symbols[i]!.startLine).toBeLessThanOrEqual(
-        result!.symbols[i + 1]!.startLine
+      expect(result?.symbols[i]?.startLine).toBeLessThanOrEqual(
+        result?.symbols[i + 1]?.startLine ?? 0
       );
     }
   });

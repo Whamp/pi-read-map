@@ -93,7 +93,7 @@ interface SessionSymbolRecord {
  * Extract a short text preview from a user message content field.
  * Handles both string and content-block-array formats.
  */
-function extractUserPreview(content: unknown, maxLength: number = 80): string {
+function extractUserPreview(content: unknown, maxLength = 80): string {
   let text = "";
   if (typeof content === "string") {
     text = content;
@@ -117,6 +117,8 @@ function extractUserPreview(content: unknown, maxLength: number = 80): string {
   return `${cleaned.slice(0, maxLength - 3)}...`;
 }
 
+const pad = (n: number) => String(n).padStart(2, "0");
+
 /**
  * Format the session timestamp for display.
  * Returns "YYYY-MM-DD HH:MM UTC" or the raw string on parse failure.
@@ -126,7 +128,6 @@ function formatSessionTimestamp(ts: string): string {
   if (!Number.isFinite(d.getTime())) {
     return ts;
   }
-  const pad = (n: number) => String(n).padStart(2, "0");
   return `${d.getUTCFullYear()}-${pad(d.getUTCMonth() + 1)}-${pad(d.getUTCDate())} ${pad(d.getUTCHours())}:${pad(d.getUTCMinutes())} UTC`;
 }
 
@@ -135,14 +136,56 @@ function formatSessionTimestamp(ts: string): string {
  */
 function formatStatsSummary(counts: SessionCounts): string {
   const parts: string[] = [];
-  if (counts.user > 0) parts.push(`${counts.user} user`);
-  if (counts.assistant > 0) parts.push(`${counts.assistant} assistant`);
-  if (counts.toolResult > 0) parts.push(`${counts.toolResult} tool results`);
-  if (counts.compaction > 0) parts.push(`${counts.compaction} compaction`);
-  if (counts.branchSummary > 0)
+  if (counts.user > 0) {
+    parts.push(`${counts.user} user`);
+  }
+  if (counts.assistant > 0) {
+    parts.push(`${counts.assistant} assistant`);
+  }
+  if (counts.toolResult > 0) {
+    parts.push(`${counts.toolResult} tool results`);
+  }
+  if (counts.compaction > 0) {
+    parts.push(`${counts.compaction} compaction`);
+  }
+  if (counts.branchSummary > 0) {
     parts.push(`${counts.branchSummary} branch summary`);
-  if (counts.modelChange > 0) parts.push(`${counts.modelChange} model change`);
+  }
+  if (counts.modelChange > 0) {
+    parts.push(`${counts.modelChange} model change`);
+  }
   return `Stats: ${parts.join(", ")}`;
+}
+
+/**
+ * Count an entry by its type, incrementing the appropriate counter.
+ */
+function countEntryType(
+  counts: SessionCounts,
+  entry: Record<string, unknown>,
+  entryType: string | undefined
+): void {
+  if (entryType === "message") {
+    const msg = entry["message"] as Record<string, unknown> | undefined;
+    const role = msg?.["role"] as string | undefined;
+    if (role === "user") {
+      counts.user++;
+    } else if (role === "assistant") {
+      counts.assistant++;
+    } else if (role === "toolResult") {
+      counts.toolResult++;
+    }
+  } else if (entryType === "compaction") {
+    counts.compaction++;
+  } else if (entryType === "branch_summary") {
+    counts.branchSummary++;
+  } else if (entryType === "model_change") {
+    counts.modelChange++;
+  } else if (entryType === "session_info") {
+    counts.sessionInfo++;
+  } else {
+    counts.other++;
+  }
 }
 
 /**
@@ -210,28 +253,7 @@ async function parsePiSession(
 
     const entryType = entry["type"] as string | undefined;
 
-    // Count entry types
-    if (entryType === "message") {
-      const msg = entry["message"] as Record<string, unknown> | undefined;
-      const role = msg?.["role"] as string | undefined;
-      if (role === "user") {
-        counts.user++;
-      } else if (role === "assistant") {
-        counts.assistant++;
-      } else if (role === "toolResult") {
-        counts.toolResult++;
-      }
-    } else if (entryType === "compaction") {
-      counts.compaction++;
-    } else if (entryType === "branch_summary") {
-      counts.branchSummary++;
-    } else if (entryType === "model_change") {
-      counts.modelChange++;
-    } else if (entryType === "session_info") {
-      counts.sessionInfo++;
-    } else {
-      counts.other++;
-    }
+    countEntryType(counts, entry, entryType);
 
     // Collect structural symbols
     if (entryType === "message") {
@@ -258,8 +280,8 @@ async function parsePiSession(
         openUserTurn = record;
       }
       // assistant and toolResult messages fold into the current user turn.
-      // TODO: investigate showing tool calls as nested child symbols under
-      // user turns for richer navigation (currently folded for simplicity).
+      // Future: showing tool calls as nested child symbols under
+      // user turns would provide richer navigation (currently folded for simplicity).
     } else if (entryType === "compaction") {
       // Close previous user turn
       if (openUserTurn) {
@@ -331,28 +353,24 @@ async function parsePiSession(
   }
 
   // Assemble symbols in line order
-  const symbols: FileSymbol[] = [];
-
-  // Header symbol
-  symbols.push({
-    name: `Pi Session: ${header.cwd} (${formatSessionTimestamp(header.timestamp)})`,
-    kind: SymbolKind.Module,
-    startLine: 1,
-    endLine: 1,
-  });
-
-  // Stats summary
-  symbols.push({
-    name: formatStatsSummary(counts),
-    kind: SymbolKind.Property,
-    startLine: 1,
-    endLine: lineCount,
-  });
-
-  // Conversation symbols (already in line order from streaming)
-  for (const record of records) {
-    symbols.push(record.symbol);
-  }
+  const symbols: FileSymbol[] = [
+    // Header symbol
+    {
+      name: `Pi Session: ${header.cwd} (${formatSessionTimestamp(header.timestamp)})`,
+      kind: SymbolKind.Module,
+      startLine: 1,
+      endLine: 1,
+    },
+    // Stats summary
+    {
+      name: formatStatsSummary(counts),
+      kind: SymbolKind.Property,
+      startLine: 1,
+      endLine: lineCount,
+    },
+    // Conversation symbols (already in line order from streaming)
+    ...records.map((r) => r.symbol),
+  ];
 
   return {
     path: filePath,

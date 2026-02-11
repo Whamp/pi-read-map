@@ -40,9 +40,7 @@ function getRegisteredTool(mockPi: ReturnType<typeof createMockPi>) {
 
 function getToolResultHandler(mockPi: ReturnType<typeof createMockPi>) {
   const onCalls = mockPi.on.mock.calls;
-  const toolResultCall = onCalls.find(
-    (call) => call[0] === "tool_result"
-  );
+  const toolResultCall = onCalls.find((call) => call[0] === "tool_result");
   return toolResultCall?.[1] as (
     event: { toolName: string; toolCallId: string },
     ctx: unknown
@@ -65,9 +63,9 @@ describe("directory read handling", () => {
     const mockPi = createMockPi();
     const tool = getRegisteredTool(mockPi);
 
-    await expect(
-      tool.execute("test-call-1", { path: dir })
-    ).rejects.toThrow("EISDIR");
+    await expect(tool.execute("test-call-1", { path: dir })).rejects.toThrow(
+      "EISDIR"
+    );
   });
 
   it("sends directory listing as separate message after error", async () => {
