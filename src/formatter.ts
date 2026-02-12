@@ -88,6 +88,11 @@ function formatSymbol(
     }
   }
 
+  // Append docstring at Full detail level
+  if (level === DetailLevel.Full && symbol.docstring) {
+    formatted += ` — ${symbol.docstring}`;
+  }
+
   return formatted;
 }
 
@@ -164,7 +169,6 @@ export function formatFileMap(map: FileMap, level?: DetailLevel): string {
   if (
     effectiveLevel !== DetailLevel.Outline &&
     effectiveLevel !== DetailLevel.Truncated &&
-    map.imports?.length &&
     map.imports.length > 0
   ) {
     const importList =
@@ -254,7 +258,7 @@ export function reduceToLevel(map: FileMap, level: DetailLevel): FileMap {
     return {
       ...map,
       detailLevel: DetailLevel.Outline,
-      imports: undefined,
+      imports: [],
       symbols: map.symbols.map((s) => ({
         name: s.name,
         kind: s.kind,
@@ -265,7 +269,7 @@ export function reduceToLevel(map: FileMap, level: DetailLevel): FileMap {
   }
 
   if (level === DetailLevel.Minimal) {
-    // Remove signatures but keep children flattened
+    // Remove signatures and docstrings but keep children flattened
     return {
       ...map,
       detailLevel: DetailLevel.Minimal,
@@ -274,11 +278,13 @@ export function reduceToLevel(map: FileMap, level: DetailLevel): FileMap {
         kind: s.kind,
         startLine: s.startLine,
         endLine: s.endLine,
+        isExported: s.isExported,
         children: s.children?.map((c) => ({
           name: c.name,
           kind: c.kind,
           startLine: c.startLine,
           endLine: c.endLine,
+          isExported: c.isExported,
         })),
       })),
     };
@@ -303,6 +309,8 @@ function stripSignatures(symbol: FileSymbol): FileSymbol {
     startLine: symbol.startLine,
     endLine: symbol.endLine,
     modifiers: symbol.modifiers,
+    docstring: symbol.docstring,
+    isExported: symbol.isExported,
     children: symbol.children?.map(stripSignatures),
   };
 }
@@ -341,7 +349,7 @@ export function reduceToTruncated(
     ...map,
     symbols: [...firstSymbols, ...lastSymbols],
     detailLevel: DetailLevel.Truncated,
-    imports: undefined,
+    imports: [],
     truncatedInfo: {
       totalSymbols: total,
       shownSymbols: symbolsEach * 2,

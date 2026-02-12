@@ -37,6 +37,7 @@ interface CMatch {
   startLine: number;
   signature?: string;
   modifiers?: string[];
+  isExported?: boolean;
 }
 
 /**
@@ -190,6 +191,7 @@ export async function cMapper(
           kind: SymbolKind.Function,
           startLine: lineNum,
           signature: `(${params ?? ""}): ${returnType ?? "void"}`,
+          isExported: !trimmed.startsWith("static"),
         });
         continue;
       }
@@ -218,6 +220,10 @@ export async function cMapper(
         symbol.modifiers = m.modifiers;
       }
 
+      if (m.isExported !== undefined) {
+        symbol.isExported = m.isExported;
+      }
+
       return symbol;
     });
 
@@ -227,6 +233,7 @@ export async function cMapper(
       totalBytes,
       language: "C",
       symbols,
+      imports: [],
       detailLevel: DetailLevel.Full,
     };
   } catch (error) {

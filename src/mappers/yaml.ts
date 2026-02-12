@@ -173,6 +173,7 @@ export async function yamlMapper(
       totalBytes,
       language: "YAML",
       symbols,
+      imports: [],
       detailLevel: DetailLevel.Full,
     };
   } catch (error) {

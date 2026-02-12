@@ -58,4 +58,27 @@ describe("cMapper", () => {
     const result = await cMapper("/non/existent/file.c");
     expect(result).toBeNull();
   });
+
+  it("marks non-static functions as exported", async () => {
+    const testFile = `${import.meta.dirname}/../../fixtures/c/exports.c`;
+    const result = await cMapper(testFile);
+
+    expect(result).not.toBeNull();
+
+    const publicFunc = result?.symbols.find((s) => s.name === "public_func");
+    expect(publicFunc?.isExported).toBe(true);
+  });
+
+  it("does not extract static functions (regex limitation)", async () => {
+    const testFile = `${import.meta.dirname}/../../fixtures/c/exports.c`;
+    const result = await cMapper(testFile);
+
+    expect(result).not.toBeNull();
+
+    // The C regex mapper cannot parse "static void func()" — the static
+    // keyword breaks the two-token "returnType funcName(" pattern.
+    // Verify no symbol named "private_helper" is extracted.
+    const staticFunc = result?.symbols.find((s) => s.name === "private_helper");
+    expect(staticFunc).toBeUndefined();
+  });
 });

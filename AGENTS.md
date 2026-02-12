@@ -128,8 +128,14 @@ Maps are cached in-memory by `(filePath, mtime)`. Delivered as custom `file-map`
 - Go outline script auto-compiles on first use; compiled binary checked in at `scripts/go_outline`
 - Phase 1-4 of implementation plan complete; remaining TODOs in `docs/todo/`
 
+| Docstrings / JSDoc | `FileSymbol.docstring?: string` | First-line summary of doc comments |
+| Exported flag | `FileSymbol.isExported?: boolean` | Whether symbol is part of public API |
+| Required imports | `FileMap.imports: string[]` | Always an array, never undefined |
+
 ## Terminology
 
+| Docstring | First line of a JSDoc / doc comment on a symbol |
+| isExported | Boolean flag: true if symbol is part of the module's public API |
 | Term | Means |
 |------|-------|
 | Map | Structural outline of a file's symbols with line ranges |

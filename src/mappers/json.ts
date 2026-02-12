@@ -171,6 +171,7 @@ export async function jsonMapper(
       totalBytes,
       language: "JSON",
       symbols,
+      imports: [],
       detailLevel: DetailLevel.Full,
     };
   } catch (error) {

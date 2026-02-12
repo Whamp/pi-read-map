@@ -27,6 +27,7 @@ function createMapWithSymbols(count: number): FileMap {
     totalBytes: count * 100,
     language: "Python",
     detailLevel: DetailLevel.Full,
+    imports: [],
     symbols,
   };
 }
@@ -48,6 +49,7 @@ function createMapWithLongNames(count: number, nameLength: number): FileMap {
     totalBytes: count * (nameLength + 50),
     language: "Python",
     detailLevel: DetailLevel.Full,
+    imports: [],
     symbols,
   };
 }
@@ -87,7 +89,7 @@ describe("reduceToTruncated", () => {
     map.imports = ["os", "sys", "asyncio"];
     const truncated = reduceToTruncated(map, 50);
 
-    expect(truncated.imports).toBeUndefined();
+    expect(truncated.imports).toEqual([]);
   });
 
   it("does not truncate small symbol counts", () => {

@@ -18,6 +18,8 @@ type Symbol struct {
 	Signature string   `json:"signature,omitempty"`
 	Modifiers []string `json:"modifiers,omitempty"`
 	Children  []Symbol `json:"children,omitempty"`
+	Docstring string   `json:"docstring,omitempty"`
+	IsExported bool    `json:"isExported"`
 }
 
 type OutlineResult struct {
@@ -106,10 +108,16 @@ func extractSymbols(fset *token.FileSet, file *ast.File) []Symbol {
 			case token.TYPE:
 				for _, spec := range d.Specs {
 					ts := spec.(*ast.TypeSpec)
+					doc := ts.Doc
+					if doc == nil {
+						doc = d.Doc
+					}
 					sym := Symbol{
-						Name:      ts.Name.Name,
-						StartLine: fset.Position(d.Pos()).Line,
-						EndLine:   fset.Position(d.End()).Line,
+						Name:       ts.Name.Name,
+						StartLine:  fset.Position(d.Pos()).Line,
+						EndLine:    fset.Position(d.End()).Line,
+						Docstring:  getDocstringFirstLine(doc),
+						IsExported: isExportedName(ts.Name.Name),
 					}
 					switch t := ts.Type.(type) {
 					case *ast.StructType:
@@ -163,10 +171,12 @@ func extractSymbols(fset *token.FileSet, file *ast.File) []Symbol {
 							continue
 						}
 						sym := Symbol{
-							Name:      name.Name,
-							Kind:      kind,
-							StartLine: fset.Position(vs.Pos()).Line,
-							EndLine:   fset.Position(vs.End()).Line,
+							Name:       name.Name,
+							Kind:       kind,
+							StartLine:  fset.Position(vs.Pos()).Line,
+							EndLine:    fset.Position(vs.End()).Line,
+							Docstring:  getDocstringFirstLine(d.Doc),
+							IsExported: isExportedName(name.Name),
 						}
 						if vs.Type != nil {
 							sym.Signature = formatType(vs.Type)
@@ -177,10 +187,12 @@ func extractSymbols(fset *token.FileSet, file *ast.File) []Symbol {
 			}
 		case *ast.FuncDecl:
 			sym := Symbol{
-				Name:      d.Name.Name,
-				StartLine: fset.Position(d.Pos()).Line,
-				EndLine:   fset.Position(d.End()).Line,
-				Signature: formatParams(d.Type.Params) + formatResults(d.Type.Results),
+				Name:       d.Name.Name,
+				StartLine:  fset.Position(d.Pos()).Line,
+				EndLine:    fset.Position(d.End()).Line,
+				Signature:  formatParams(d.Type.Params) + formatResults(d.Type.Results),
+				Docstring:  getDocstringFirstLine(d.Doc),
+				IsExported: isExportedName(d.Name.Name),
 			}
 			if d.Recv != nil && len(d.Recv.List) > 0 {
 				sym.Kind = "method"
@@ -197,6 +209,26 @@ func extractSymbols(fset *token.FileSet, file *ast.File) []Symbol {
 	}
 
 	return symbols
+}
+
+func getDocstringFirstLine(doc *ast.CommentGroup) string {
+	if doc == nil {
+		return ""
+	}
+	text := doc.Text()
+	if text == "" {
+		return ""
+	}
+	lines := strings.SplitN(text, "\n", 2)
+	return strings.TrimSpace(lines[0])
+}
+
+func isExportedName(name string) bool {
+	if len(name) == 0 {
+		return false
+	}
+	r := []rune(name)
+	return r[0] >= 'A' && r[0] <= 'Z'
 }
 
 func extractImports(file *ast.File) []string {

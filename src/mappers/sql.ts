@@ -186,6 +186,7 @@ export async function sqlMapper(
       totalBytes,
       language: "SQL",
       symbols,
+      imports: [],
       detailLevel: DetailLevel.Full,
     };
   } catch (error) {

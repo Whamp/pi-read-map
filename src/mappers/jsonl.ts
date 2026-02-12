@@ -378,6 +378,7 @@ async function parsePiSession(
     totalBytes,
     language: "Pi Session",
     symbols,
+    imports: [],
     detailLevel: DetailLevel.Full,
   };
 }
@@ -461,6 +462,7 @@ async function parseGenericJsonl(
     totalBytes,
     language: "JSON Lines",
     symbols,
+    imports: [],
     detailLevel: DetailLevel.Full,
   };
 }

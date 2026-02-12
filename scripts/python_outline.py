@@ -82,6 +82,18 @@ def get_end_line(node: ast.AST) -> int:
     return getattr(node, 'lineno', 0)
 
 
+def get_docstring_first_line(node: ast.AST) -> str | None:
+    """Extract the first line of a docstring from a class or function."""
+    try:
+        doc = ast.get_docstring(node)
+    except TypeError:
+        return None
+    if not doc:
+        return None
+    first_line = doc.split('\n')[0].strip()
+    return first_line if first_line else None
+
+
 def extract_symbols(node: ast.AST, parent_end: int | None = None) -> list[dict]:
     """Recursively extract symbols from AST."""
     symbols = []
@@ -113,6 +125,8 @@ def extract_symbols(node: ast.AST, parent_end: int | None = None) -> list[dict]:
             "endLine": end_line,
             "modifiers": modifiers,
             "children": children if children else None,
+            "docstring": get_docstring_first_line(node),
+            "is_exported": not node.name.startswith("_"),
         })
     
     elif isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef)):
@@ -132,6 +146,8 @@ def extract_symbols(node: ast.AST, parent_end: int | None = None) -> list[dict]:
             "endLine": end_line,
             "signature": get_signature(node),
             "modifiers": modifiers if modifiers else None,
+            "docstring": get_docstring_first_line(node),
+            "is_exported": not node.name.startswith("_"),
         })
     
     elif isinstance(node, ast.Assign):

@@ -108,4 +108,36 @@ impl MyStruct {
     const result = await rustMapper("/non/existent/file.rs");
     expect(result).toBeNull();
   });
+
+  it("extracts doc comments as docstrings", async () => {
+    const filePath = join(FIXTURES_DIR, "rust/docstrings.rs");
+    const result = await rustMapper(filePath);
+
+    if (result) {
+      const config = result.symbols.find((s) => s.name === "Config");
+      expect(config?.docstring).toBe("A configuration for the application.");
+
+      const startServer = result.symbols.find((s) => s.name === "start_server");
+      expect(startServer?.docstring).toBe(
+        "Start the server with the given config."
+      );
+
+      // No doc comment
+      const helper = result.symbols.find((s) => s.name === "internal_helper");
+      expect(helper?.docstring).toBeUndefined();
+    }
+  });
+
+  it("sets isExported based on pub visibility", async () => {
+    const filePath = join(FIXTURES_DIR, "rust/docstrings.rs");
+    const result = await rustMapper(filePath);
+
+    if (result) {
+      const config = result.symbols.find((s) => s.name === "Config");
+      expect(config?.isExported).toBe(true);
+
+      const helper = result.symbols.find((s) => s.name === "internal_helper");
+      expect(helper?.isExported).toBe(false);
+    }
+  });
 });

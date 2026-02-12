@@ -139,7 +139,7 @@ class MyClass:
     const reduced = reduceToLevel(map, DetailLevel.Outline);
 
     expect(reduced.detailLevel).toBe(DetailLevel.Outline);
-    expect(reduced.imports).toBeUndefined();
+    expect(reduced.imports).toEqual([]);
 
     // All children should be removed
     for (const symbol of reduced.symbols) {

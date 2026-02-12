@@ -18,6 +18,10 @@ export interface FileSymbol {
   children?: FileSymbol[];
   /** Additional modifiers (async, static, etc.) */
   modifiers?: string[];
+  /** First line of JSDoc / docstring (if present) */
+  docstring?: string;
+  /** Whether this symbol is exported from its module */
+  isExported?: boolean;
 }
 
 /**
@@ -46,8 +50,8 @@ export interface FileMap {
   language: string;
   /** Extracted symbols */
   symbols: FileSymbol[];
-  /** Import list (if applicable) */
-  imports?: string[];
+  /** Module imports / dependencies */
+  imports: string[];
   /** Detail level used for this map */
   detailLevel: DetailLevel;
   /** Truncation metadata (present when symbols are truncated) */

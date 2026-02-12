@@ -24,6 +24,8 @@ interface GoSymbol {
   signature?: string;
   modifiers?: string[];
   children?: GoSymbol[];
+  docstring?: string;
+  isExported?: boolean;
 }
 
 interface GoOutlineResult {
@@ -150,6 +152,14 @@ function convertSymbol(gs: GoSymbol): FileSymbol {
     symbol.children = gs.children.map(convertSymbol);
   }
 
+  if (gs.docstring) {
+    symbol.docstring = gs.docstring;
+  }
+
+  if (gs.isExported !== undefined) {
+    symbol.isExported = gs.isExported;
+  }
+
   return symbol;
 }
 
@@ -200,12 +210,9 @@ export async function goMapper(
       totalBytes,
       language: "Go",
       symbols: result.symbols.map(convertSymbol),
+      imports: result.imports ?? [],
       detailLevel: DetailLevel.Full,
     };
-
-    if (result.imports && result.imports.length > 0) {
-      fileMap.imports = result.imports;
-    }
 
     return fileMap;
   } catch (error) {

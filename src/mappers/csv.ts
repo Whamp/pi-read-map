@@ -132,6 +132,7 @@ export async function csvMapper(
       totalBytes,
       language: isTsv ? "TSV" : "CSV",
       symbols,
+      imports: [],
       detailLevel: DetailLevel.Full,
     };
   } catch (error) {

@@ -156,7 +156,81 @@ describe("reduceToLevel", () => {
 
     expect(reduced.detailLevel).toBe(DetailLevel.Outline);
     expect(reduced.symbols[1]?.children).toBeUndefined();
-    expect(reduced.imports).toBeUndefined();
+    expect(reduced.imports).toEqual([]);
+  });
+});
+
+describe("docstring and isExported in formatting", () => {
+  function createDocstringMap(): FileMap {
+    return {
+      path: "/path/to/test.ts",
+      totalLines: 100,
+      totalBytes: 5000,
+      language: "TypeScript",
+      detailLevel: DetailLevel.Full,
+      imports: ["express"],
+      symbols: [
+        {
+          name: "handleRequest",
+          kind: SymbolKind.Function,
+          startLine: 5,
+          endLine: 20,
+          signature: "(req: Request): Response",
+          docstring: "Processes incoming HTTP requests",
+          isExported: true,
+          modifiers: ["export"],
+        },
+        {
+          name: "internalHelper",
+          kind: SymbolKind.Function,
+          startLine: 25,
+          endLine: 30,
+          isExported: false,
+        },
+      ],
+    };
+  }
+
+  it("displays docstrings at Full detail level", () => {
+    const map = createDocstringMap();
+    const output = formatFileMap(map, DetailLevel.Full);
+
+    expect(output).toContain("— Processes incoming HTTP requests");
+  });
+
+  it("does not display docstrings at Compact level", () => {
+    const map = createDocstringMap();
+    const reduced = reduceToLevel(map, DetailLevel.Compact);
+    const output = formatFileMap(reduced, DetailLevel.Compact);
+
+    // Docstrings are kept in data but formatSymbol only shows them at Full
+    expect(output).not.toContain("— Processes incoming HTTP requests");
+  });
+
+  it("preserves docstring and isExported at Compact level", () => {
+    const map = createDocstringMap();
+    const reduced = reduceToLevel(map, DetailLevel.Compact);
+
+    expect(reduced.symbols[0]?.docstring).toBe(
+      "Processes incoming HTTP requests"
+    );
+    expect(reduced.symbols[0]?.isExported).toBe(true);
+  });
+
+  it("preserves isExported at Minimal level but drops docstring", () => {
+    const map = createDocstringMap();
+    const reduced = reduceToLevel(map, DetailLevel.Minimal);
+
+    expect(reduced.symbols[0]?.isExported).toBe(true);
+    expect(reduced.symbols[0]?.docstring).toBeUndefined();
+  });
+
+  it("drops both docstring and isExported at Outline level", () => {
+    const map = createDocstringMap();
+    const reduced = reduceToLevel(map, DetailLevel.Outline);
+
+    expect(reduced.symbols[0]?.docstring).toBeUndefined();
+    expect(reduced.symbols[0]?.isExported).toBeUndefined();
   });
 });
 

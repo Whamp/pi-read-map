@@ -21,6 +21,8 @@ interface PythonSymbol {
   signature?: string;
   modifiers?: string[];
   children?: PythonSymbol[];
+  docstring?: string;
+  is_exported?: boolean;
 }
 
 interface PythonOutlineResult {
@@ -72,6 +74,14 @@ function convertSymbol(ps: PythonSymbol): FileSymbol {
     symbol.children = ps.children.map(convertSymbol);
   }
 
+  if (ps.docstring) {
+    symbol.docstring = ps.docstring;
+  }
+
+  if (ps.is_exported !== undefined) {
+    symbol.isExported = ps.is_exported;
+  }
+
   return symbol;
 }
 
@@ -99,6 +109,7 @@ export async function pythonMapper(
       {
         signal,
         timeout: 10_000,
+        maxBuffer: 5 * 1024 * 1024, // 5MB
       }
     );
 
@@ -120,12 +131,9 @@ export async function pythonMapper(
       totalBytes,
       language: "Python",
       symbols: result.symbols.map(convertSymbol),
+      imports: result.imports ?? [],
       detailLevel: DetailLevel.Full,
     };
-
-    if (result.imports && result.imports.length > 0) {
-      fileMap.imports = result.imports;
-    }
 
     return fileMap;
   } catch (error) {

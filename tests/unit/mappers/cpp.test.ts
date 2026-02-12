@@ -77,4 +77,36 @@ void MyClass::doSomething() {
     const result = await cppMapper("/non/existent/file.cpp");
     expect(result).toBeNull();
   });
+
+  it("extracts doc comments as docstrings", async () => {
+    const filePath = join(FIXTURES_DIR, "cpp/docstrings.cpp");
+    const result = await cppMapper(filePath);
+
+    if (result) {
+      const handler = result.symbols.find((s) => s.name === "RequestHandler");
+      expect(handler?.docstring).toBe("A request handler for the HTTP server.");
+
+      const factorial = result.symbols.find((s) => s.name === "factorial");
+      expect(factorial?.docstring).toBe("Compute the factorial of n.");
+
+      // static function with no doc comment
+      const moduleInit = result.symbols.find((s) => s.name === "module_init");
+      expect(moduleInit?.docstring).toBeUndefined();
+    }
+  });
+
+  it("sets isExported based on linkage and access", async () => {
+    const filePath = join(FIXTURES_DIR, "cpp/docstrings.cpp");
+    const result = await cppMapper(filePath);
+
+    if (result) {
+      // Free function without static => exported
+      const factorial = result.symbols.find((s) => s.name === "factorial");
+      expect(factorial?.isExported).toBe(true);
+
+      // static function => not exported
+      const moduleInit = result.symbols.find((s) => s.name === "module_init");
+      expect(moduleInit?.isExported).toBe(false);
+    }
+  });
 });

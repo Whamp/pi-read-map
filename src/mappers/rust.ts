@@ -29,6 +29,7 @@ interface InternalSymbol {
   isAsync: boolean;
   isStatic: boolean;
   parentName?: string;
+  docstring?: string;
 }
 
 // Lazy-loaded parser
@@ -253,6 +254,37 @@ function normalizeTypePath(path: string, moduleKey: string | null): string {
 }
 
 /**
+ * Extract doc comment (/// or //!) from preceding siblings of a node.
+ * Returns the first line of the doc comment, or undefined.
+ */
+function extractDocComment(
+  node: import("tree-sitter").SyntaxNode,
+  source: string
+): string | undefined {
+  const docLines: string[] = [];
+  let prev = node.previousNamedSibling;
+
+  // Walk backwards collecting consecutive doc comment lines
+  while (prev) {
+    if (prev.type === "line_comment") {
+      const text = getNodeText(prev, source);
+      if (text.startsWith("///")) {
+        docLines.unshift(text.replace(/^\/\/\/\s?/, ""));
+        prev = prev.previousNamedSibling;
+        continue;
+      }
+    }
+    break;
+  }
+
+  if (docLines.length === 0) {
+    return undefined;
+  }
+  const firstLine = docLines[0]?.trim();
+  return firstLine || undefined;
+}
+
+/**
  * Extract Rust symbols using tree-sitter.
  */
 function extractRustSymbols(content: string): InternalSymbol[] {
@@ -306,6 +338,7 @@ function extractRustSymbols(content: string): InternalSymbol[] {
       isAsync: false,
       isStatic: false,
       parentName: parentKey,
+      docstring: extractDocComment(node, content),
     });
 
     const body = node.childForFieldName("body");
@@ -340,6 +373,7 @@ function extractRustSymbols(content: string): InternalSymbol[] {
       isAsync: false,
       isStatic: false,
       parentName: parentKey,
+      docstring: extractDocComment(node, content),
     });
 
     const body = node.childForFieldName("body");
@@ -374,6 +408,7 @@ function extractRustSymbols(content: string): InternalSymbol[] {
       isAsync: false,
       isStatic: false,
       parentName: parentKey,
+      docstring: extractDocComment(node, content),
     });
 
     const body = node.childForFieldName("body");
@@ -408,6 +443,7 @@ function extractRustSymbols(content: string): InternalSymbol[] {
       isAsync: false,
       isStatic: false,
       parentName: parentKey,
+      docstring: extractDocComment(node, content),
     });
 
     const body = node.childForFieldName("body");
@@ -474,6 +510,7 @@ function extractRustSymbols(content: string): InternalSymbol[] {
       isAsync,
       isStatic: false,
       parentName,
+      docstring: extractDocComment(node, content),
     });
   };
 
@@ -500,6 +537,7 @@ function extractRustSymbols(content: string): InternalSymbol[] {
       isAsync: false,
       isStatic: false,
       parentName,
+      docstring: extractDocComment(node, content),
     });
   };
 
@@ -523,6 +561,7 @@ function extractRustSymbols(content: string): InternalSymbol[] {
       isAsync: false,
       isStatic: true,
       parentName,
+      docstring: extractDocComment(node, content),
     });
   };
 
@@ -549,6 +588,7 @@ function extractRustSymbols(content: string): InternalSymbol[] {
       isAsync: false,
       isStatic: false,
       parentName,
+      docstring: extractDocComment(node, content),
     });
   };
 
@@ -807,6 +847,12 @@ function convertSymbols(internalSymbols: InternalSymbol[]): FileSymbol[] {
     if (modifiers.length > 0) {
       symbol.modifiers = modifiers;
     }
+
+    if (is.docstring) {
+      symbol.docstring = is.docstring;
+    }
+
+    symbol.isExported = is.exported;
 
     // Store with a key for parent lookup
     symbolMap.set(is.name, symbol);

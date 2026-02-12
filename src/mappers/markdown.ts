@@ -171,6 +171,7 @@ export async function markdownMapper(
       totalBytes,
       language: "Markdown",
       symbols,
+      imports: [],
       detailLevel: DetailLevel.Full,
     };
   } catch (error) {

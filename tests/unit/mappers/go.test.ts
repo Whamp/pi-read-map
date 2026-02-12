@@ -75,4 +75,39 @@ describe("goMapper", () => {
     expect(result.imports).toBeDefined();
     expect(result.imports?.length).toBeGreaterThan(0);
   });
+
+  it("extracts doc comments as docstrings", async () => {
+    const testFile = `${import.meta.dirname}/../../fixtures/go/docstrings.go`;
+    const result = await goMapper(testFile);
+
+    if (result === null) {
+      console.log("Skipping Go docstring test: Go not available");
+      return;
+    }
+
+    const processData = result.symbols.find((s) => s.name === "ProcessData");
+    expect(processData?.docstring).toBe(
+      "ProcessData handles incoming data transformations."
+    );
+
+    const config = result.symbols.find((s) => s.name === "Config");
+    expect(config?.docstring).toBe("Config holds application configuration.");
+  });
+
+  it("sets isExported based on name capitalization", async () => {
+    const testFile = `${import.meta.dirname}/../../fixtures/go/docstrings.go`;
+    const result = await goMapper(testFile);
+
+    if (result === null) {
+      return;
+    }
+
+    const processData = result.symbols.find((s) => s.name === "ProcessData");
+    expect(processData?.isExported).toBe(true);
+
+    const internalHelper = result.symbols.find(
+      (s) => s.name === "internalHelper"
+    );
+    expect(internalHelper?.isExported).toBe(false);
+  });
 });

@@ -265,6 +265,29 @@ interface InternalSymbol {
   isStatic: boolean;
   isAbstract: boolean;
   parentName?: string;
+  docstring?: string;
+}
+
+/**
+ * Extract the first line of a JSDoc comment from a node.
+ */
+function getDocstring(
+  node: import("ts-morph").JSDocableNode
+): string | undefined {
+  const docs = node.getJsDocs();
+  if (docs.length === 0) {
+    return undefined;
+  }
+  const [firstDoc] = docs;
+  if (!firstDoc) {
+    return undefined;
+  }
+  const text = firstDoc.getDescription().trim();
+  if (!text) {
+    return undefined;
+  }
+  const firstLine = text.split("\n")[0]?.trim();
+  return firstLine || undefined;
 }
 
 function extractSymbols(
@@ -285,6 +308,7 @@ function extractSymbols(
       isAsync: func.isAsync(),
       isStatic: false,
       isAbstract: false,
+      docstring: getDocstring(func),
     });
   }
 
@@ -301,6 +325,7 @@ function extractSymbols(
       isAsync: false,
       isStatic: false,
       isAbstract: cls.isAbstract(),
+      docstring: getDocstring(cls),
     });
 
     for (const ctor of cls.getConstructors()) {
@@ -332,6 +357,7 @@ function extractSymbols(
         isStatic: method.isStatic(),
         isAbstract: method.isAbstract(),
         parentName: className,
+        docstring: getDocstring(method),
       });
     }
 
@@ -396,6 +422,7 @@ function extractSymbols(
       isAsync: false,
       isStatic: false,
       isAbstract: false,
+      docstring: getDocstring(iface),
     });
   }
 
@@ -411,6 +438,7 @@ function extractSymbols(
       isAsync: false,
       isStatic: false,
       isAbstract: false,
+      docstring: getDocstring(typeAlias),
     });
   }
 
@@ -427,6 +455,7 @@ function extractSymbols(
       isAsync: false,
       isStatic: false,
       isAbstract: false,
+      docstring: getDocstring(enumDecl),
     });
 
     for (const member of enumDecl.getMembers()) {
@@ -449,6 +478,7 @@ function extractSymbols(
   }
 
   for (const varStatement of sourceFile.getVariableStatements()) {
+    const statementDocstring = getDocstring(varStatement);
     for (const varDecl of varStatement.getDeclarations()) {
       const signature = getVariableSignature(ts, varDecl) ?? varDecl.getName();
       symbols.push({
@@ -462,6 +492,7 @@ function extractSymbols(
         isAsync: isVariableAsync(ts, varDecl),
         isStatic: false,
         isAbstract: false,
+        docstring: statementDocstring,
       });
     }
   }
@@ -633,7 +664,11 @@ function convertSymbols(internalSymbols: InternalSymbol[]): FileSymbol[] {
       symbol.modifiers = modifiers;
     }
 
-    // Store with a key for parent lookup
+    if (is.docstring) {
+      symbol.docstring = is.docstring;
+    }
+
+    symbol.isExported = is.exported;
     symbolMap.set(is.name, symbol);
 
     if (is.parentName && symbolMap.has(is.parentName)) {

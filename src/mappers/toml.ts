@@ -179,6 +179,7 @@ export async function tomlMapper(
       totalBytes,
       language: "TOML",
       symbols,
+      imports: [],
       detailLevel: DetailLevel.Full,
     };
   } catch (error) {

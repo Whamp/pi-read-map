@@ -173,4 +173,20 @@ SECTION: Footer
     expect(result).not.toBeNull();
     expect(result?.path).toBe(filepath);
   });
+
+  it("always returns imports as an array, never undefined", async () => {
+    const testCases = [
+      { ext: "py", content: "def hello(): pass", lang: "Python" },
+      { ext: "sql", content: "CREATE TABLE t (id INT);", lang: "SQL" },
+      { ext: "yaml", content: "key: value", lang: "YAML" },
+    ];
+
+    for (const { ext, content } of testCases) {
+      const filepath = await createTempFile(`imports-test.${ext}`, content);
+      const result = await generateMap(filepath);
+
+      expect(result).not.toBeNull();
+      expect(Array.isArray(result?.imports)).toBe(true);
+    }
+  });
 });

@@ -87,4 +87,41 @@ describe("pythonMapper", () => {
       expect(symbol.endLine).toBeGreaterThanOrEqual(symbol.startLine);
     }
   });
+
+  it("extracts docstrings from Python functions and classes", async () => {
+    const filePath = join(FIXTURES_DIR, "python/docstrings.py");
+    const result = await pythonMapper(filePath);
+
+    expect(result).not.toBeNull();
+
+    const processData = result?.symbols.find((s) => s.name === "process_data");
+    expect(processData?.docstring).toBe(
+      "Process a list of items and return results."
+    );
+
+    const dataProcessor = result?.symbols.find(
+      (s) => s.name === "DataProcessor"
+    );
+    expect(dataProcessor?.docstring).toBe(
+      "Handles complex data transformations."
+    );
+
+    const noDocstring = result?.symbols.find((s) => s.name === "no_docstring");
+    expect(noDocstring?.docstring).toBeUndefined();
+  });
+
+  it("sets isExported based on underscore convention", async () => {
+    const filePath = join(FIXTURES_DIR, "python/docstrings.py");
+    const result = await pythonMapper(filePath);
+
+    expect(result).not.toBeNull();
+
+    const processData = result?.symbols.find((s) => s.name === "process_data");
+    expect(processData?.isExported).toBe(true);
+
+    const privateHelper = result?.symbols.find(
+      (s) => s.name === "_private_helper"
+    );
+    expect(privateHelper?.isExported).toBe(false);
+  });
 });

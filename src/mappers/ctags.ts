@@ -208,6 +208,7 @@ export async function ctagsMapper(
       totalBytes,
       language: langInfo?.name || "Unknown",
       symbols,
+      imports: [],
       detailLevel: DetailLevel.Compact,
     };
   } catch (error) {
@@ -306,6 +307,7 @@ async function ctagsMapperLegacy(
       totalBytes,
       language: langInfo?.name || "Unknown",
       symbols,
+      imports: [],
       detailLevel: DetailLevel.Compact,
     };
   } catch {

@@ -150,6 +150,7 @@ export async function fallbackMapper(
       totalBytes,
       language: langInfo?.name || "Unknown",
       symbols,
+      imports: [],
       detailLevel: DetailLevel.Minimal,
     };
   } catch (error) {

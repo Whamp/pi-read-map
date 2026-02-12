@@ -28,6 +28,7 @@ interface InternalSymbol {
   endLine: number;
   exported: boolean;
   parentName?: string;
+  docstring?: string;
 }
 
 // Lazy-loaded parser
@@ -292,6 +293,50 @@ function collectFieldNames(
 }
 
 /**
+ * Extract Doxygen-style doc comment from preceding siblings.
+ * Handles /// and /** styles.
+ */
+function extractDocComment(
+  node: import("tree-sitter").SyntaxNode,
+  source: string
+): string | undefined {
+  let prev = node.previousNamedSibling;
+
+  // Check for block comment (/** ... */)
+  if (prev && prev.type === "comment") {
+    const text = getNodeText(prev, source);
+    if (text.startsWith("/**")) {
+      const body = text
+        .replace(/^\/\*\*\s*/, "")
+        .replace(/\s*\*\/$/, "")
+        .split("\n")
+        .map((l) => l.replace(/^\s*\*\s?/, "").trim())
+        .find(Boolean);
+      const firstLine = body?.trim();
+      return firstLine || undefined;
+    }
+  }
+
+  // Check for line comments (/// ...)
+  const docLines: string[] = [];
+  while (prev && prev.type === "comment") {
+    const text = getNodeText(prev, source);
+    if (text.startsWith("///")) {
+      docLines.unshift(text.replace(/^\/\/\/\s?/, ""));
+      prev = prev.previousNamedSibling;
+      continue;
+    }
+    break;
+  }
+
+  if (docLines.length === 0) {
+    return undefined;
+  }
+  const firstLine = docLines[0]?.trim();
+  return firstLine || undefined;
+}
+
+/**
  * Extract C++ symbols using tree-sitter.
  */
 function extractCppSymbols(content: string): InternalSymbol[] {
@@ -355,6 +400,7 @@ function extractCppSymbols(content: string): InternalSymbol[] {
       endLine,
       exported: true,
       parentName: parentKey ?? undefined,
+      docstring: extractDocComment(node, content),
     });
 
     pushScope({ kind: "namespace", name: cleanName, key });
@@ -394,6 +440,7 @@ function extractCppSymbols(content: string): InternalSymbol[] {
       endLine,
       exported: true,
       parentName: parentKey ?? undefined,
+      docstring: extractDocComment(node, content),
     });
 
     const access: AccessLevel = kind === "struct" ? "public" : "private";
@@ -435,6 +482,7 @@ function extractCppSymbols(content: string): InternalSymbol[] {
       endLine,
       exported: true,
       parentName: parentKey ?? undefined,
+      docstring: extractDocComment(node, content),
     });
 
     for (const enumerator of collectDescendants(node, "enumerator")) {
@@ -484,6 +532,7 @@ function extractCppSymbols(content: string): InternalSymbol[] {
       endLine,
       exported: true,
       parentName: parentKey ?? undefined,
+      docstring: extractDocComment(node, content),
     });
   };
 
@@ -508,6 +557,7 @@ function extractCppSymbols(content: string): InternalSymbol[] {
       endLine,
       exported: true,
       parentName: parentKey ?? undefined,
+      docstring: extractDocComment(node, content),
     });
   };
 
@@ -563,6 +613,7 @@ function extractCppSymbols(content: string): InternalSymbol[] {
       endLine,
       exported,
       parentName: parentName ?? undefined,
+      docstring: extractDocComment(node, content),
     });
   };
 
@@ -777,6 +828,12 @@ function convertSymbols(internalSymbols: InternalSymbol[]): FileSymbol[] {
       symbol.modifiers = ["export"];
     }
 
+    if (is.docstring) {
+      symbol.docstring = is.docstring;
+    }
+
+    symbol.isExported = is.exported;
+
     // Store with a key for parent lookup
     symbolMap.set(is.name, symbol);
 
@@ -838,6 +895,7 @@ export async function cppMapper(
       totalBytes,
       language: "C++",
       symbols,
+      imports: [],
       detailLevel: DetailLevel.Full,
     };
   } catch (error) {
