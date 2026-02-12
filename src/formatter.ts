@@ -43,14 +43,23 @@ function formatSymbol(
 
   let { name } = symbol;
 
-  // Add modifiers for full detail
-  if (level === DetailLevel.Full && symbol.modifiers?.length) {
-    name = `${symbol.modifiers.join(" ")} ${name}`;
-  }
-
-  // Add signature for full detail
-  if (level === DetailLevel.Full && symbol.signature) {
-    name = `${name}${symbol.signature}`;
+  if (level === DetailLevel.Full) {
+    if (symbol.signature) {
+      // Check whether the signature already contains the symbol name.
+      // Full-declaration signatures (e.g. Rust "pub fn foo(x: i32) -> bool")
+      // include the name; partial signatures (e.g. Python "(x, y) -> None")
+      // do not and should be appended.
+      if (symbol.signature.includes(name)) {
+        name = symbol.signature;
+      } else {
+        if (symbol.modifiers?.length) {
+          name = `${symbol.modifiers.join(" ")} ${name}`;
+        }
+        name = `${name}${symbol.signature}`;
+      }
+    } else if (symbol.modifiers?.length) {
+      name = `${symbol.modifiers.join(" ")} ${name}`;
+    }
   }
 
   // Format based on kind
