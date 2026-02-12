@@ -148,6 +148,85 @@ export default function piReadMapExtension(pi: ExtensionAPI): void {
     }
   );
 
+  // Recover from skipped reads caused by map steering
+  pi.on("turn_end", (event) => {
+    const SKIPPED_TEXT = "Skipped due to queued user message.";
+
+    // Find skipped read results
+    const skippedReads = event.toolResults.filter(
+      (r) =>
+        r.toolName === "read" &&
+        !r.isError &&
+        r.content.some((c) => c.type === "text" && c.text === SKIPPED_TEXT)
+    );
+
+    if (skippedReads.length === 0) {
+      return;
+    }
+
+    // Extract paths from the assistant message's tool calls.
+    // The message is AgentMessage (union); narrow to AssistantMessage.
+    const msg = event.message;
+    if (!("role" in msg) || msg.role !== "assistant") {
+      return;
+    }
+
+    const skippedPaths: string[] = [];
+    for (const skipped of skippedReads) {
+      const tc = msg.content.find(
+        (c) =>
+          c.type === "toolCall" &&
+          c.name === "read" &&
+          c.id === skipped.toolCallId
+      );
+      if (tc && tc.type === "toolCall" && tc.arguments["path"]) {
+        skippedPaths.push(String(tc.arguments["path"]));
+      }
+    }
+
+    if (skippedPaths.length === 0) {
+      return;
+    }
+
+    const pathList = skippedPaths.map((p) => `- read("${p}")`).join("\n");
+
+    pi.sendMessage(
+      {
+        customType: "read-recovery",
+        content: `The following read() calls were interrupted by a file map delivery and need to be completed:\n${pathList}\nPlease re-issue these reads now.`,
+        display: true,
+      },
+      { deliverAs: "followUp" }
+    );
+  });
+
+  // Register custom message renderer for read-recovery type
+  pi.registerMessageRenderer(
+    "read-recovery",
+    (message, options, theme: Theme) => {
+      const content =
+        typeof message.content === "string"
+          ? message.content
+          : message.content
+              .filter((c) => c.type === "text")
+              .map((c) => (c as { type: "text"; text: string }).text)
+              .join("\n");
+
+      if (options.expanded) {
+        return new Text(content, 0, 0);
+      }
+
+      const pathCount = (content.match(/^- read\(/gm) || []).length;
+      let summary = theme.fg("warning", "Recovery: ");
+      summary += theme.fg(
+        "dim",
+        `${pathCount} interrupted read(s) being re-issued`
+      );
+
+      return new Text(summary, 0, 0);
+    }
+  );
+
   // Register our enhanced read tool
   pi.registerTool({
     name: "read",
