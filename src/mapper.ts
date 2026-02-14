@@ -3,6 +3,7 @@ import type { FileMap, MapOptions } from "./types.js";
 import { THRESHOLDS } from "./constants.js";
 import { detectLanguage } from "./language-detect.js";
 import { cMapper } from "./mappers/c.js";
+import { clojureMapper } from "./mappers/clojure.js";
 import { cppMapper } from "./mappers/cpp.js";
 import { csvMapper } from "./mappers/csv.js";
 import { ctagsMapper } from "./mappers/ctags.js";
@@ -57,6 +58,9 @@ const MAPPERS: Record<string, MapperFn> = {
   yaml: yamlMapper,
   toml: tomlMapper,
   csv: csvMapper,
+
+  // Phase 5: Clojure tree-sitter
+  clojure: clojureMapper,
 };
 
 /**

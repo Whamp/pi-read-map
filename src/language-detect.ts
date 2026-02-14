@@ -38,6 +38,12 @@ const EXTENSION_MAP: Record<string, LanguageInfo> = {
   ".hpp": { id: "cpp", name: "C++" },
   ".hxx": { id: "cpp", name: "C++" },
 
+  // Clojure
+  ".clj": { id: "clojure", name: "Clojure" },
+  ".cljs": { id: "clojure", name: "ClojureScript" },
+  ".cljc": { id: "clojure", name: "Clojure" },
+  ".edn": { id: "clojure", name: "EDN" },
+
   // SQL
   ".sql": { id: "sql", name: "SQL" },
 

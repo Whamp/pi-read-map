@@ -80,6 +80,25 @@ describe("detectLanguage", () => {
     expect(detectLanguage("file.hpp")).toEqual({ id: "cpp", name: "C++" });
   });
 
+  it("detects Clojure files", () => {
+    expect(detectLanguage("file.clj")).toEqual({
+      id: "clojure",
+      name: "Clojure",
+    });
+    expect(detectLanguage("file.cljs")).toEqual({
+      id: "clojure",
+      name: "ClojureScript",
+    });
+    expect(detectLanguage("file.cljc")).toEqual({
+      id: "clojure",
+      name: "Clojure",
+    });
+    expect(detectLanguage("file.edn")).toEqual({
+      id: "clojure",
+      name: "EDN",
+    });
+  });
+
   it("detects SQL files", () => {
     expect(detectLanguage("file.sql")).toEqual({ id: "sql", name: "SQL" });
   });
