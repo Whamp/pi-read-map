@@ -186,6 +186,10 @@ The extension intercepts `read` calls and decides:
 
 This project was inspired by and built upon the foundation of [codemap](https://github.com/kcosr/codemap) by [kcosr](https://github.com/kcosr). Check out the original project for the ideas that made this possible.
 
+### Contributors
+
+- [Baishampayan Ghose](https://github.com/ghoseb) — Clojure tree-sitter mapper and [tree-sitter-clojure](https://github.com/ghoseb/tree-sitter-clojure) grammar
+
 ## License
 
 MIT
