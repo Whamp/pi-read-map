@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.2.1] - 2026-02-14
+
+### Fixed
+
+- Published tarball reduced from 310 KB to 49 KB by adding `.npmignore` (excluded `.codemap/` caches, compiled Go binary, `.pi/` agent files, tests, and demo assets)
+
 ## [1.2.0] - 2026-02-14
 
 ### Added
