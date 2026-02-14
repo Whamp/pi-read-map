@@ -18,6 +18,7 @@ The `assets/` directory contains large, complex files from famous open-source pr
 | `yaml/github-api.yaml` | [GitHub REST API](https://github.com/github/rest-api-description) | 8.6 MB | 239,368 | OpenAPI spec — every GitHub API endpoint, schema, and parameter |
 | `sql/structure.sql` | [GitLab](https://github.com/gitlabhq/gitlabhq) | 2.7 MB | 58,599 | Database schema — hundreds of tables, indexes, and constraints |
 | `json/cloudformation-spec.json` | [AWS CloudFormation](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/) | 13 MB | 254,827 | Resource specification — every AWS resource type and property |
+| `clojure/core.clj` | [Clojure](https://github.com/clojure/clojure) | 270 KB | 8,229 | The Clojure language core — every built-in function, macro, and protocol |
 
 These files demonstrate the extension's ability to provide structural understanding of massive codebases without exhausting context windows.
 
