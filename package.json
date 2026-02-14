@@ -44,6 +44,7 @@
   "license": "MIT",
   "dependencies": {
     "tree-sitter": "0.22.4",
+    "tree-sitter-clojure": "github:ghoseb/tree-sitter-clojure",
     "tree-sitter-cpp": "0.23.4",
     "tree-sitter-rust": "0.23.3",
     "ts-morph": "27.0.2"
