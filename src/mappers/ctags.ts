@@ -19,10 +19,12 @@ const execAsync = promisify(exec);
 let ctagsAvailable: boolean | null = null;
 
 /**
- * Map ctags kind letters to SymbolKind.
+ * Map ctags kind identifiers to SymbolKind.
+ * Handles both single-letter kinds (legacy format) and full-word kinds (JSON format).
  * See: https://docs.ctags.io/en/latest/man/ctags.1.html
  */
 const CTAGS_KIND_MAP: Record<string, SymbolKind> = {
+  // Single-letter kinds (legacy/traditional format)
   c: SymbolKind.Class,
   d: SymbolKind.Constant, // macro definition
   e: SymbolKind.Enum,
@@ -44,7 +46,7 @@ const CTAGS_KIND_MAP: Record<string, SymbolKind> = {
   P: SymbolKind.Property, // property
   S: SymbolKind.Struct, // struct
   T: SymbolKind.Type, // type
-  // Language-specific mappings
+  // Language-specific single-letter mappings
   a: SymbolKind.Type, // alias
   b: SymbolKind.Variable, // block (Ruby)
   h: SymbolKind.Module, // header (C)
@@ -53,6 +55,30 @@ const CTAGS_KIND_MAP: Record<string, SymbolKind> = {
   u: SymbolKind.Type, // union
   w: SymbolKind.Property, // field
   z: SymbolKind.Property, // parameter
+
+  // Full-word kinds (JSON output format)
+  class: SymbolKind.Class,
+  enum: SymbolKind.Enum,
+  enumerator: SymbolKind.Enum,
+  function: SymbolKind.Function,
+  interface: SymbolKind.Interface,
+  macro: SymbolKind.Constant,
+  member: SymbolKind.Property,
+  method: SymbolKind.Method,
+  module: SymbolKind.Module,
+  namespace: SymbolKind.Namespace,
+  package: SymbolKind.Module,
+  property: SymbolKind.Property,
+  struct: SymbolKind.Struct,
+  type: SymbolKind.Type,
+  typedef: SymbolKind.Type,
+  union: SymbolKind.Type,
+  variable: SymbolKind.Variable,
+  field: SymbolKind.Property,
+  constant: SymbolKind.Constant,
+  prototype: SymbolKind.Function,
+  alias: SymbolKind.Type,
+  trait: SymbolKind.Interface,
 };
 
 interface CtagsEntry {
@@ -149,9 +175,10 @@ export async function ctagsMapper(
       return null;
     }
 
-    // Run ctags with JSON output
+    // Run ctags with JSON output and line numbers
     // --output-format=json requires Universal Ctags 5.9+
-    const cmd = `ctags --output-format=json -f - "${filePath}" 2>/dev/null`;
+    // --fields=+n ensures line numbers are included in JSON output
+    const cmd = `ctags --output-format=json --fields=+n -f - "${filePath}" 2>/dev/null`;
 
     let stdout: string;
     try {

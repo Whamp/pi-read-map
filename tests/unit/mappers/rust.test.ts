@@ -4,17 +4,24 @@ import { describe, expect, it } from "vitest";
 
 import { SymbolKind } from "../../../src/enums.js";
 import { rustMapper } from "../../../src/mappers/rust.js";
+import { hasTreeSitterRust } from "../../helpers/tree-sitter.js";
 
 const FIXTURES_DIR = join(import.meta.dirname, "../../fixtures");
 const TMP_DIR = join(FIXTURES_DIR, "tmp");
 
 describe("rustMapper", () => {
-  it("extracts structs from Rust files", async () => {
-    await mkdir(TMP_DIR, { recursive: true });
-    const filePath = join(TMP_DIR, "test.rs");
-    await writeFile(
-      filePath,
-      `pub struct MyStruct {
+  it("returns null for non-existent files", async () => {
+    const result = await rustMapper("/non/existent/file.rs");
+    expect(result).toBeNull();
+  });
+
+  describe.runIf(hasTreeSitterRust)("with tree-sitter", () => {
+    it("extracts structs from Rust files", async () => {
+      await mkdir(TMP_DIR, { recursive: true });
+      const filePath = join(TMP_DIR, "test.rs");
+      await writeFile(
+        filePath,
+        `pub struct MyStruct {
     pub name: String,
     value: i32,
 }
@@ -29,115 +36,107 @@ impl MyStruct {
     }
 }
 `
-    );
+      );
 
-    try {
-      const result = await rustMapper(filePath);
+      try {
+        const result = await rustMapper(filePath);
+        expect(result).not.toBeNull();
 
-      // May return null if tree-sitter is not available
-      if (result) {
-        expect(result.language).toBe("Rust");
-        expect(result.symbols.length).toBeGreaterThan(0);
+        expect(result?.language).toBe("Rust");
+        expect(result?.symbols.length).toBeGreaterThan(0);
 
-        const structSymbol = result.symbols.find(
+        const structSymbol = result?.symbols.find(
           (s) => s.kind === SymbolKind.Class && s.name === "MyStruct"
         );
         expect(structSymbol).toBeDefined();
+      } finally {
+        await rm(filePath, { force: true });
       }
-    } finally {
-      await rm(filePath, { force: true });
-    }
-  });
+    });
 
-  it("extracts enums from Rust files", async () => {
-    await mkdir(TMP_DIR, { recursive: true });
-    const filePath = join(TMP_DIR, "enum.rs");
-    await writeFile(
-      filePath,
-      `pub enum Status {
+    it("extracts enums from Rust files", async () => {
+      await mkdir(TMP_DIR, { recursive: true });
+      const filePath = join(TMP_DIR, "enum.rs");
+      await writeFile(
+        filePath,
+        `pub enum Status {
     Active,
     Inactive,
     Pending(String),
 }
 `
-    );
+      );
 
-    try {
-      const result = await rustMapper(filePath);
+      try {
+        const result = await rustMapper(filePath);
+        expect(result).not.toBeNull();
 
-      if (result) {
-        const enumSymbol = result.symbols.find(
+        const enumSymbol = result?.symbols.find(
           (s) => s.kind === SymbolKind.Enum
         );
         expect(enumSymbol).toBeDefined();
         expect(enumSymbol?.name).toBe("Status");
+      } finally {
+        await rm(filePath, { force: true });
       }
-    } finally {
-      await rm(filePath, { force: true });
-    }
-  });
+    });
 
-  it("extracts traits from Rust files", async () => {
-    await mkdir(TMP_DIR, { recursive: true });
-    const filePath = join(TMP_DIR, "trait.rs");
-    await writeFile(
-      filePath,
-      `pub trait Processor {
+    it("extracts traits from Rust files", async () => {
+      await mkdir(TMP_DIR, { recursive: true });
+      const filePath = join(TMP_DIR, "trait.rs");
+      await writeFile(
+        filePath,
+        `pub trait Processor {
     fn process(&self, data: &str) -> Result<(), Error>;
     fn validate(&self) -> bool;
 }
 `
-    );
+      );
 
-    try {
-      const result = await rustMapper(filePath);
+      try {
+        const result = await rustMapper(filePath);
+        expect(result).not.toBeNull();
 
-      if (result) {
-        const traitSymbol = result.symbols.find(
+        const traitSymbol = result?.symbols.find(
           (s) => s.kind === SymbolKind.Interface
         );
         expect(traitSymbol).toBeDefined();
         expect(traitSymbol?.name).toBe("Processor");
+      } finally {
+        await rm(filePath, { force: true });
       }
-    } finally {
-      await rm(filePath, { force: true });
-    }
-  });
+    });
 
-  it("returns null for non-existent files", async () => {
-    const result = await rustMapper("/non/existent/file.rs");
-    expect(result).toBeNull();
-  });
+    it("extracts doc comments as docstrings", async () => {
+      const filePath = join(FIXTURES_DIR, "rust/docstrings.rs");
+      const result = await rustMapper(filePath);
+      expect(result).not.toBeNull();
 
-  it("extracts doc comments as docstrings", async () => {
-    const filePath = join(FIXTURES_DIR, "rust/docstrings.rs");
-    const result = await rustMapper(filePath);
-
-    if (result) {
-      const config = result.symbols.find((s) => s.name === "Config");
+      const config = result?.symbols.find((s) => s.name === "Config");
       expect(config?.docstring).toBe("A configuration for the application.");
 
-      const startServer = result.symbols.find((s) => s.name === "start_server");
+      const startServer = result?.symbols.find(
+        (s) => s.name === "start_server"
+      );
       expect(startServer?.docstring).toBe(
         "Start the server with the given config."
       );
 
       // No doc comment
-      const helper = result.symbols.find((s) => s.name === "internal_helper");
+      const helper = result?.symbols.find((s) => s.name === "internal_helper");
       expect(helper?.docstring).toBeUndefined();
-    }
-  });
+    });
 
-  it("sets isExported based on pub visibility", async () => {
-    const filePath = join(FIXTURES_DIR, "rust/docstrings.rs");
-    const result = await rustMapper(filePath);
+    it("sets isExported based on pub visibility", async () => {
+      const filePath = join(FIXTURES_DIR, "rust/docstrings.rs");
+      const result = await rustMapper(filePath);
+      expect(result).not.toBeNull();
 
-    if (result) {
-      const config = result.symbols.find((s) => s.name === "Config");
+      const config = result?.symbols.find((s) => s.name === "Config");
       expect(config?.isExported).toBe(true);
 
-      const helper = result.symbols.find((s) => s.name === "internal_helper");
+      const helper = result?.symbols.find((s) => s.name === "internal_helper");
       expect(helper?.isExported).toBe(false);
-    }
+    });
   });
 });

@@ -1,4 +1,4 @@
-import { describe, expect, expectTypeOf, it } from "vitest";
+import { describe, expect, it } from "vitest";
 
 import { DetailLevel } from "../../../src/enums.js";
 import {
@@ -8,10 +8,10 @@ import {
 } from "../../../src/mappers/ctags.js";
 
 describe("ctagsMapper", () => {
-  it("isCtagsAvailable returns boolean", async () => {
+  it("ctags is available", async () => {
     resetCtagsCache();
     const available = await isCtagsAvailable();
-    expectTypeOf(available).toBeBoolean();
+    expect(available).toBe(true);
   });
 
   it("caches ctags availability check", async () => {
@@ -21,22 +21,13 @@ describe("ctagsMapper", () => {
     expect(first).toBe(second);
   });
 
-  it("returns null when ctags is not available", async () => {
-    // This test works whether or not ctags is installed
-    // If not installed, it returns null. If installed, it succeeds.
-    const testFile = `${import.meta.dirname}/../../fixtures/js/sample.js`;
+  it("returns a map for a known file", async () => {
+    const testFile = `${import.meta.dirname}/../../fixtures/c/main.c`;
     resetCtagsCache();
 
-    const available = await isCtagsAvailable();
     const result = await ctagsMapper(testFile);
-
-    if (available) {
-      // ctags is installed, should return a map
-      expect(result).not.toBeNull();
-      expect(result?.symbols.length).toBeGreaterThanOrEqual(0);
-    } else {
-      expect(result).toBeNull();
-    }
+    expect(result).not.toBeNull();
+    expect(result?.symbols.length).toBeGreaterThan(0);
   });
 
   it("gracefully handles non-existent files", async () => {
@@ -45,20 +36,12 @@ describe("ctagsMapper", () => {
     expect(result).toBeNull();
   });
 
-  it("returns correct detail level when ctags works", async () => {
+  it("returns correct detail level", async () => {
     resetCtagsCache();
-    const available = await isCtagsAvailable();
-
-    if (!available) {
-      // Skip test if ctags not installed
-      return;
-    }
 
     const testFile = `${import.meta.dirname}/../../fixtures/c/main.c`;
     const result = await ctagsMapper(testFile);
-
-    if (result) {
-      expect(result.detailLevel).toBe(DetailLevel.Compact);
-    }
+    expect(result).not.toBeNull();
+    expect(result?.detailLevel).toBe(DetailLevel.Compact);
   });
 });

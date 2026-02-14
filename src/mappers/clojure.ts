@@ -29,8 +29,8 @@ const DEF_FORMS: Record<
   defmulti: { kind: SymbolKind.Function },
   defmethod: { kind: SymbolKind.Method },
   defprotocol: { kind: SymbolKind.Interface, hasChildren: true },
-  defrecord: { kind: SymbolKind.Class, hasChildren: true },
-  deftype: { kind: SymbolKind.Class, hasChildren: true },
+  defrecord: { kind: SymbolKind.Class },
+  deftype: { kind: SymbolKind.Class },
 };
 
 // Lazy-loaded parser
@@ -364,6 +364,8 @@ function extractDef(node: SyntaxNode, source: string): FileSymbol | null {
     ? buildFnSignature(formName, name, restValues, source)
     : buildDefSignature(formName, name, restValues, source);
 
+  // Only defprotocol has extractable method children.
+  // defrecord/deftype inline protocol methods are not yet extracted.
   let children: FileSymbol[] | undefined;
   if (defInfo.hasChildren && formName === "defprotocol") {
     const extracted = extractProtocolMethods(restValues, source);
@@ -504,7 +506,8 @@ function extractReaderConditionalDefs(
     if (child.type === "list_lit") {
       const def = extractDef(child, source);
       if (def && currentPlatform) {
-        const platformMod = `platform:${currentPlatform}`;
+        const platformName = currentPlatform.replace(/^:/, "");
+        const platformMod = `platform-${platformName}`;
         def.modifiers = def.modifiers
           ? [...def.modifiers, platformMod]
           : [platformMod];
@@ -524,7 +527,8 @@ export async function clojureMapper(
   signal?: AbortSignal
 ): Promise<FileMap | null> {
   try {
-    if (!getParser()) {
+    const p = getParser();
+    if (!p) {
       return null;
     }
 
@@ -534,11 +538,6 @@ export async function clojureMapper(
     const content = await readFile(filePath, "utf8");
 
     if (signal?.aborted) {
-      return null;
-    }
-
-    const p = getParser();
-    if (!p) {
       return null;
     }
 
