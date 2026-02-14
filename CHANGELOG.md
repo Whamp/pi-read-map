@@ -2,18 +2,27 @@
 
 All notable changes to this project will be documented in this file.
 
-## [1.1.0] - 2026-02-14
+## [1.2.0] - 2026-02-14
 
 ### Added
 
 - **Clojure mapper** — tree-sitter-based parser for `.clj`, `.cljs`, `.cljc`, and `.edn` files. Extracts `ns`, `defn`, `defn-`, `def`, `defonce`, `defmacro`, `defmulti`, `defmethod`, `defprotocol`, `defrecord`, and `deftype` forms with docstrings, signatures, modifiers, and protocol method children. Supports reader conditionals (`#?`) with per-platform annotations. Contributed by [Baishampayan Ghose](https://github.com/ghoseb). ([#2](https://github.com/Whamp/pi-read-map/pull/2))
+- Clojure demo asset (`clojure/core.clj` from the official Clojure repo)
+
+### Changed
+
+- Tree-sitter tests use `describe.runIf` for conditional execution
+
+## [1.1.0] - 2026-02-10
+
+### Added
+
 - Docstring extraction (`FileSymbol.docstring`) across all mappers
 - Export flag (`FileSymbol.isExported`) across all mappers
 - Required imports (`FileMap.imports`) across all mappers
 - Skipped read recovery — detects reads cancelled by steering queue and re-issues them
 - JSONL session-aware maps for pi session files
 - Directory read handling with EISDIR error and `ls` fallback
-- Clojure demo asset (`clojure/core.clj` from the official Clojure repo)
 
 ### Fixed
 
@@ -22,9 +31,7 @@ All notable changes to this project will be documented in this file.
 
 ### Changed
 
-- Version bumped from 1.0.0 to 1.1.0
 - Test helpers refactored; `models.ts` renamed to `constants.ts`
-- Tree-sitter tests use `describe.runIf` for conditional execution
 
 ## [1.0.0] - 2026-02-09
 
