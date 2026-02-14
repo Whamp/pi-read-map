@@ -1,10 +1,10 @@
 # AGENTS.md
 
-> Last updated: 2026-02-10
+> Last updated: 2026-02-14
 
 Pi extension that augments the built-in `read` tool with structural file maps for large files (>2,000 lines or >50 KB). Intercepts `read` calls, generates symbol maps via language-specific parsers, and sends them as separate `file-map` messages after the tool result.
 
-## Commands (verified 2026-02-10)
+## Commands (verified 2026-02-14)
 
 | Command | Purpose | ~Time |
 |---------|---------|-------|
@@ -30,10 +30,11 @@ src/
 ├── types.ts              → FileMap, FileSymbol, MapOptions, FileMapMessageDetails
 ├── enums.ts              → SymbolKind (21 kinds), DetailLevel (5 levels)
 ├── constants.ts          → THRESHOLDS: lines, bytes, budget tiers
-└── mappers/              → One mapper per language (16 total)
+└── mappers/              → One mapper per language (17 total)
     ├── typescript.ts     → ts-morph (handles TS + JS)
     ├── rust.ts           → tree-sitter-rust
     ├── cpp.ts            → tree-sitter-cpp (C++ and .h files)
+    ├── clojure.ts        → tree-sitter-clojure (.clj, .cljs, .cljc, .edn)
     ├── python.ts         → subprocess: scripts/python_outline.py
     ├── go.ts             → subprocess: scripts/go_outline.go
     ├── json.ts           → subprocess: jq
@@ -58,7 +59,7 @@ tests/
 ├── e2e/                  → Real pi sessions via tmux (vitest.e2e.config.ts)
 ├── fixtures/             → Sample files per language
 ├── benchmarks/           → Mapper performance benchmarks
-└── helpers/              → Test utilities (pi-runner, constants, models)
+└── helpers/              → Test utilities (pi-runner, constants, tree-sitter)
 
 docs/
 ├── plans/                → Implementation plans (phased)
@@ -86,6 +87,7 @@ Maps are cached in-memory by `(filePath, mtime)`. Delivered as custom `file-map`
 |-----|-----------|--------------|
 | New mapper | `src/mappers/csv.ts` | Simple, clean, regex-free in-process parsing |
 | Complex mapper | `src/mappers/typescript.ts` | ts-morph AST walk, nested symbols, modifiers |
+| Tree-sitter mapper | `src/mappers/clojure.ts` | tree-sitter AST walk, reader conditionals, platform modifiers |
 | Subprocess mapper | `src/mappers/python.ts` | Calls external script, parses JSON output |
 | Unit test | `tests/unit/mappers/csv.test.ts` | Fixture-based, edge cases, null returns |
 | Integration test | `tests/integration/budget-enforcement.test.ts` | Tests progressive detail reduction |
@@ -125,8 +127,9 @@ Maps are cached in-memory by `(filePath, mtime)`. Delivered as custom `file-map`
 
 - `oxlint` installed as devDependency; `npm run lint` exits cleanly (0 errors, 0 warnings)
 - `tree-sitter` pinned to 0.22.4 due to peer dependency conflicts (see `docs/todo/upgrade-tree-sitter-0.26.md`)
+- `tree-sitter-clojure` pinned to commit SHA from `github:ghoseb/tree-sitter-clojure` (third-party fork)
 - Go outline script auto-compiles on first use; compiled binary checked in at `scripts/go_outline`
-- Phase 1-4 of implementation plan complete; remaining TODOs in `docs/todo/`
+- Phase 1-5 of implementation plan complete; remaining TODOs in `docs/todo/`
 
 | Docstrings / JSDoc | `FileSymbol.docstring?: string` | First-line summary of doc comments |
 | Exported flag | `FileSymbol.isExported?: boolean` | Whether symbol is part of public API |
@@ -151,5 +154,5 @@ Maps are cached in-memory by `(filePath, mtime)`. Delivered as custom `file-map`
 - **Language:** TypeScript (strict, `noUncheckedIndexedAccess`)
 - **Testing:** Vitest (unit/integration: 10s timeout, e2e: 60s timeout)
 - **Linting:** oxlint + oxfmt
-- **Parsing:** ts-morph, tree-sitter, regex, subprocess (Python/Go/jq)
+- **Parsing:** ts-morph, tree-sitter (rust, cpp, clojure), regex, subprocess (Python/Go/jq)
 - **Framework:** pi extension API (`@mariozechner/pi-coding-agent`)

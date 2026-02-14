@@ -23,7 +23,7 @@ https://github.com/user-attachments/assets/4408f37b-b669-453f-a588-336a5332ae90
 ## What It Does
 
 - **Generates structural maps** showing symbols, classes, functions, and their exact line ranges
-- **Supports 16 languages** through specialized parsers: TypeScript, JavaScript, Python, Go, Rust, C, C++, SQL, JSON, JSONL, YAML, TOML, CSV, Markdown
+- **Supports 17 languages** through specialized parsers: TypeScript, JavaScript, Python, Go, Rust, C, C++, Clojure, ClojureScript, SQL, JSON, JSONL, YAML, TOML, CSV, Markdown, EDN
 - **Extracts structural outlines** — functions, classes, and their line ranges — typically under 1% of file size
 - **Enforces budgets** through progressive detail reduction (10 KB full → 15 KB compact → 20 KB minimal → 50 KB outline → 100 KB hard cap)
 - **Caches maps** in memory by file path and modification time for instant re-reads
@@ -130,6 +130,7 @@ src/
     ├── go.ts             # Go AST via subprocess
     ├── rust.ts           # tree-sitter
     ├── cpp.ts            # tree-sitter for C/C++
+    ├── clojure.ts        # tree-sitter for Clojure/ClojureScript/EDN
     ├── c.ts              # Regex patterns
     ├── sql.ts            # Regex
     ├── json.ts           # jq subprocess
@@ -173,6 +174,7 @@ The extension intercepts `read` calls and decides:
 - `tree-sitter` - Parser framework
 - `tree-sitter-cpp` - C/C++ parsing
 - `tree-sitter-rust` - Rust parsing
+- `tree-sitter-clojure` - Clojure parsing
 
 **System tools (optional):**
 - `python3` - Python mapper
