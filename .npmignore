@@ -1,27 +1,47 @@
+# Caches
+.codemap/
+**/.codemap/
+
+# Pi agent files
+.pi/
+
 # Tests and fixtures
 tests/
 demo/
-docs/
+benchmarks/
 
-# Config files
+# Docs (not needed at runtime)
+docs/
+AGENTS.md
+demo.md
+
+# Config and tooling
+.husky/
+.jscpd.json
 .oxlintrc.json
 .oxfmtrc.jsonc
+knip.json
+tsconfig.json
 vitest.config.ts
 vitest.e2e.config.ts
-tsconfig.json
-
-# Git and pi
-.git/
-.gitignore
-.pi/
-
-# Large files
-demo.mp4
 banner.png
+demo.mp4
 
-# Compiled binaries (rebuilt on first use)
+# Compiled Go binary (recompiled on first use)
 scripts/go_outline
 
-# Dev artifacts
-*.log
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# OS
 .DS_Store
+Thumbs.db
+
+# Build artifacts
+dist/
+coverage/
+*.log
+*.tmp
