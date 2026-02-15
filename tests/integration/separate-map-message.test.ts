@@ -56,18 +56,21 @@ describe("separate map message", () => {
 
       // Verify sendMessage was called with correct args
       expect(sendMessage).toHaveBeenCalledOnce();
-      expect(sendMessage).toHaveBeenCalledWith({
-        customType: "file-map",
-        content: "fake map content",
-        display: true,
-        details: {
-          filePath: "/test/file.ts",
-          totalLines: 1000,
-          totalBytes: 50_000,
-          symbolCount: 25,
-          language: "TypeScript",
+      expect(sendMessage).toHaveBeenCalledWith(
+        {
+          customType: "file-map",
+          content: "fake map content",
+          display: true,
+          details: {
+            filePath: "/test/file.ts",
+            totalLines: 1000,
+            totalBytes: 50_000,
+            symbolCount: 25,
+            language: "TypeScript",
+          },
         },
-      });
+        { deliverAs: "followUp" }
+      );
 
       // Verify pending map was cleaned up
       expect(pendingMaps.size).toBe(0);

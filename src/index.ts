@@ -136,11 +136,14 @@ export default function piReadMapExtension(pi: ExtensionAPI): void {
     // Send pending directory listing after read-on-directory error
     const pendingLs = pendingDirectoryLs.get(event.toolCallId);
     if (pendingLs) {
-      pi.sendMessage({
-        customType: "directory-listing",
-        content: `${pendingLs.path} is a directory. Here is ls:\n${pendingLs.listing}`,
-        display: true,
-      });
+      pi.sendMessage(
+        {
+          customType: "directory-listing",
+          content: `${pendingLs.path} is a directory. Here is ls:\n${pendingLs.listing}`,
+          display: true,
+        },
+        { deliverAs: "followUp" }
+      );
       pendingDirectoryLs.delete(event.toolCallId);
     }
 
@@ -150,12 +153,15 @@ export default function piReadMapExtension(pi: ExtensionAPI): void {
     }
 
     // Send the map as a custom message
-    pi.sendMessage({
-      customType: "file-map",
-      content: pending.map,
-      display: true,
-      details: pending.details,
-    });
+    pi.sendMessage(
+      {
+        customType: "file-map",
+        content: pending.map,
+        display: true,
+        details: pending.details,
+      },
+      { deliverAs: "followUp" }
+    );
 
     // Clean up
     pendingMaps.delete(event.toolCallId);

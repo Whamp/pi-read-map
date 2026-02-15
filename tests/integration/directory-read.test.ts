@@ -92,7 +92,8 @@ describe("directory read handling", () => {
     expect(mockPi.sendMessage).toHaveBeenCalledWith(
       expect.objectContaining({
         customType: "directory-listing",
-      })
+      }),
+      { deliverAs: "followUp" }
     );
 
     const message = mockPi.sendMessage.mock.calls[0]?.[0];
