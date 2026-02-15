@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.2.3] - 2026-02-15
+
+### Fixed
+
+- Binary/image files (`.jpg`, `.png`, `.gif`, `.webp`, etc.) no longer enter the map generation pipeline — they are delegated directly to the built-in read tool. Previously, a >50 KB image would pass the size threshold, run `wc -l` on binary data, and trigger ctags/grep fallback. When multiple image reads ran in parallel, the resulting `sendMessage` calls broke the Claude API's `tool_use`/`tool_result` pairing requirement.
+- Fallback mapper now returns `null` when grep finds zero symbols instead of returning an empty `FileMap`. This prevents unnecessary `sendMessage` calls for unmappable files.
+
 ## [1.2.2] - 2026-02-14
 
 ### Changed

@@ -157,9 +157,10 @@ tests/
 
 The extension intercepts `read` calls and decides:
 
-1. **Small files** (≤2,000 lines, ≤50 KB): Delegate to built-in read tool
-2. **Targeted reads** (offset or limit provided): Delegate to built-in read tool
-3. **Large files:**
+1. **Binary files** (images, audio, video, archives, etc.): Delegate to built-in read tool
+2. **Small files** (≤2,000 lines, ≤50 KB): Delegate to built-in read tool
+3. **Targeted reads** (offset or limit provided): Delegate to built-in read tool
+4. **Large files:**
    - Call built-in read for the first chunk
    - Detect language from file extension
    - Dispatch to a mapper (language-specific → ctags → grep fallback)

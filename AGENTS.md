@@ -1,10 +1,10 @@
 # AGENTS.md
 
-> Last updated: 2026-02-14
+> Last updated: 2026-02-15
 
 Pi extension that augments the built-in `read` tool with structural file maps for large files (>2,000 lines or >50 KB). Intercepts `read` calls, generates symbol maps via language-specific parsers, and sends them as separate `file-map` messages after the tool result.
 
-## Commands (verified 2026-02-14)
+## Commands (verified 2026-02-15)
 
 | Command | Purpose | ~Time |
 |---------|---------|-------|
@@ -70,7 +70,9 @@ docs/
 
 ## Architecture
 
-Dispatch chain: `index.ts` → `mapper.ts` → language mapper → ctags → fallback.
+Binary/image files (images, audio, video, archives, executables) are detected by extension in `index.ts` via `BINARY_EXTENSIONS` and delegated directly to the built-in read tool with no map generation.
+
+Dispatch chain for text files: `index.ts` → `mapper.ts` → language mapper → ctags → fallback.
 
 Budget enforcement in `formatter.ts` uses progressive detail reduction:
 - 10 KB: full detail (signatures, modifiers)
