@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.2.2] - 2026-02-14
+
+### Changed
+
+- "Ctrl+O to expand" hint in file map summary uses dim styling instead of warning (yellow) for a less alarming appearance
+
 ## [1.2.1] - 2026-02-14
 
 ### Fixed
