@@ -141,6 +141,11 @@ export async function fallbackMapper(
       };
     });
 
+    // No symbols found — nothing useful to map
+    if (symbols.length === 0) {
+      return null;
+    }
+
     // Get language info
     const langInfo = detectLanguage(filePath);
 

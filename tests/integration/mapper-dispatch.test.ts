@@ -155,8 +155,8 @@ class MyClass {
     expect(result).not.toBeNull();
   });
 
-  it("fallback produces result for unrecognized files", async () => {
-    // Create a file with truly random content
+  it("fallback returns null for unrecognized files with no symbols", async () => {
+    // Create a file with content that has no grep-matchable symbols
     const content = `
 SECTION: Header
   item1: value1
@@ -168,10 +168,10 @@ SECTION: Footer
     const filepath = await createTempFile("data.custom", content);
     const result = await generateMap(filepath);
 
-    // Even for truly unknown content, we should get some result
-    // Either ctags finds something or grep fallback runs
-    expect(result).not.toBeNull();
-    expect(result?.path).toBe(filepath);
+    // No language-specific mapper, ctags unlikely to find symbols,
+    // grep fallback finds nothing → null
+    // This is correct: no useful map to send
+    expect(result).toBeNull();
   });
 
   it("always returns imports as an array, never undefined", async () => {

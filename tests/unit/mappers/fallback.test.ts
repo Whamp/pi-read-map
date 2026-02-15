@@ -23,7 +23,7 @@ describe("fallbackMapper", () => {
     expect(defSymbols.length + classSymbols.length).toBeGreaterThan(0);
   });
 
-  it("handles files with no recognizable patterns", async () => {
+  it("returns null for files with no recognizable patterns", async () => {
     const tempDir = join(FIXTURES_DIR, "temp");
     const tempFile = join(tempDir, "no-patterns.txt");
 
@@ -33,9 +33,8 @@ describe("fallbackMapper", () => {
     try {
       const result = await fallbackMapper(tempFile);
 
-      expect(result).not.toBeNull();
-      expect(result?.symbols).toEqual([]);
-      expect(result?.totalLines).toBe(3);
+      // No grep-matchable symbols → null (nothing useful to map)
+      expect(result).toBeNull();
     } finally {
       await rm(tempDir, { recursive: true, force: true });
     }

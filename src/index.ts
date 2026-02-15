@@ -10,7 +10,7 @@ import { Text } from "@mariozechner/pi-tui";
 import { Type } from "@sinclair/typebox";
 import { exec } from "node:child_process";
 import { stat } from "node:fs/promises";
-import { basename, resolve } from "node:path";
+import { basename, extname, resolve } from "node:path";
 import { promisify } from "node:util";
 
 import type { FileMapMessageDetails } from "./types.js";
@@ -21,6 +21,60 @@ import { generateMap, shouldGenerateMap } from "./mapper.js";
 export type { FileMapMessageDetails } from "./types.js";
 
 const execAsync = promisify(exec);
+
+/**
+ * File extensions that are binary/image files and should be
+ * delegated directly to the built-in read tool without map generation.
+ */
+const BINARY_EXTENSIONS = new Set([
+  ".jpg",
+  ".jpeg",
+  ".png",
+  ".gif",
+  ".webp",
+  ".bmp",
+  ".ico",
+  ".tiff",
+  ".tif",
+  ".svg",
+  ".avif",
+  ".heic",
+  ".heif",
+  // Audio/video
+  ".mp3",
+  ".mp4",
+  ".wav",
+  ".avi",
+  ".mov",
+  ".mkv",
+  ".flac",
+  ".ogg",
+  ".webm",
+  // Archives
+  ".zip",
+  ".tar",
+  ".gz",
+  ".bz2",
+  ".xz",
+  ".7z",
+  ".rar",
+  // Binary data
+  ".bin",
+  ".exe",
+  ".dll",
+  ".so",
+  ".dylib",
+  ".o",
+  ".a",
+  ".wasm",
+  ".pdf",
+  ".doc",
+  ".docx",
+  ".xls",
+  ".xlsx",
+  ".ppt",
+  ".pptx",
+]);
 
 // In-memory cache for maps
 const mapCache = new Map<string, { mtime: number; map: string }>();
@@ -256,6 +310,11 @@ export default function piReadMapExtension(pi: ExtensionAPI): void {
 
       // Resolve path
       const absPath = resolve(cwd, inputPath.replace(/^@/, ""));
+
+      // Skip binary/image files — delegate directly without map generation
+      if (BINARY_EXTENSIONS.has(extname(absPath).toLowerCase())) {
+        return builtInRead.execute(toolCallId, params, signal, onUpdate);
+      }
 
       // Check file size and line count
       let stats;
