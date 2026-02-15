@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.2.5] - 2026-02-15
+
+### Fixed
+
+- `sendMessage` calls in `tool_result` handler now use `deliverAs: "followUp"` instead of the default `"steer"` mode. The default `"steer"` mode interrupts streaming and skips remaining parallel tools — when multiple reads ran concurrently and one triggered a file-map or directory-listing message, the remaining tool calls were skipped, leaving `tool_use` blocks without matching `tool_result` blocks. This caused a 400 error from the Claude API on the next request.
+
 ## [1.2.4] - 2026-02-15
 
 ### Fixed
