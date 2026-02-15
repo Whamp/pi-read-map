@@ -182,6 +182,10 @@ The extension intercepts `read` calls and decides:
 - `jq` - JSON mapper
 - `universal-ctags` - Language fallback
 
+## Known Issues
+
+**Peer dependency warnings during install.** You may see `npm warn ERESOLVE overriding peer dependency` messages about `tree-sitter-cpp`. This is cosmetic — the extension installs and works correctly. The warning occurs because `tree-sitter-cpp@0.23.4` on npm declares `peerDependencies: { "tree-sitter": "^0.21.1" }` while we use `tree-sitter@0.22.4` (required by `tree-sitter-rust`). The fix exists on the tree-sitter-cpp master branch but hasn't been published to npm yet. See [tree-sitter/tree-sitter-cpp#349](https://github.com/tree-sitter/tree-sitter-cpp/issues/349) for tracking.
+
 ## Acknowledgments
 
 This project was inspired by and built upon the foundation of [codemap](https://github.com/kcosr/codemap) by [kcosr](https://github.com/kcosr). Check out the original project for the ideas that made this possible.
