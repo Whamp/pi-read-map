@@ -142,7 +142,7 @@ export default function piReadMapExtension(pi: ExtensionAPI): void {
       summary += theme.fg("muted", ` │ `);
       summary += theme.fg("dim", detailLanguage);
       summary += theme.fg("muted", ` │ `);
-      summary += theme.fg("warning", "Ctrl+O to expand");
+      summary += theme.fg("dim", "Ctrl+O to expand");
 
       return new Text(summary, 0, 0);
     }
