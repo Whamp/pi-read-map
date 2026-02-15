@@ -242,16 +242,16 @@ describe("getDetailLevelForSize", () => {
 
   it("returns compact for medium sizes", () => {
     expect(getDetailLevelForSize(12 * 1024)).toBe(DetailLevel.Compact);
-    expect(getDetailLevelForSize(15 * 1024)).toBe(DetailLevel.Compact);
+    expect(getDetailLevelForSize(20 * 1024)).toBe(DetailLevel.Compact);
   });
 
   it("returns minimal for larger sizes", () => {
-    expect(getDetailLevelForSize(18 * 1024)).toBe(DetailLevel.Minimal);
-    expect(getDetailLevelForSize(20 * 1024)).toBe(DetailLevel.Minimal);
+    expect(getDetailLevelForSize(22 * 1024)).toBe(DetailLevel.Minimal);
+    expect(getDetailLevelForSize(25 * 1024)).toBe(DetailLevel.Minimal);
   });
 
   it("returns outline for sizes exceeding budget", () => {
-    expect(getDetailLevelForSize(25 * 1024)).toBe(DetailLevel.Outline);
+    expect(getDetailLevelForSize(30 * 1024)).toBe(DetailLevel.Outline);
     expect(getDetailLevelForSize(100 * 1024)).toBe(DetailLevel.Outline);
   });
 });

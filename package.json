@@ -1,6 +1,6 @@
 {
   "name": "pi-read-map",
-  "version": "1.2.2",
+  "version": "1.2.3",
   "description": "Pi extension that adds structural file maps for large files",
   "type": "module",
   "pi": {

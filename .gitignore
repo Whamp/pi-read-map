@@ -28,3 +28,4 @@ coverage/
 *.log
 *.tmp
 .pi/tmp/
+**/tmp/

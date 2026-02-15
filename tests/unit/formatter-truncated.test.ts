@@ -255,7 +255,7 @@ describe("budget tier progression", () => {
     const map = createMapWithSymbols(500);
     const formatted = formatFileMapWithBudget(map);
 
-    // 500 symbols fits in compact budget (≤15KB), not outline
-    expect(formatted).toContain("[Map ≤15.0 KB | compact]");
+    // 500 symbols fits in compact budget (≤20KB), not outline
+    expect(formatted).toContain("[Map ≤20.0 KB | compact]");
   });
 });
