@@ -36,6 +36,13 @@ scripts/go_outline
 *.swp
 *.swo
 
+# Local scratch/review artifacts
+*.orig
+*.patch
+debug-*.js
+fix-*.js
+update-*.js
+
 # OS
 .DS_Store
 Thumbs.db

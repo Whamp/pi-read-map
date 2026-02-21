@@ -59,26 +59,6 @@ describe("extension loading", () => {
 
     expect(registeredTool).toBeDefined();
     expect(registeredTool.execute).toBeTypeOf("function");
-    // Verify it's an async function (returns a Promise when called)
     expect(registeredTool.execute.constructor.name).toBe("AsyncFunction");
-  });
-
-  it("registers tool_result event handler", () => {
-    const mockPi = createMockPi();
-
-    piReadMapExtension(mockPi as never);
-
-    expect(mockPi.on).toHaveBeenCalledWith("tool_result", expect.any(Function));
-  });
-
-  it("registers file-map message renderer", () => {
-    const mockPi = createMockPi();
-
-    piReadMapExtension(mockPi as never);
-
-    expect(mockPi.registerMessageRenderer).toHaveBeenCalledWith(
-      "file-map",
-      expect.any(Function)
-    );
   });
 });

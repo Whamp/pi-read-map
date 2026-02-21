@@ -26,12 +26,6 @@ export interface ToolResult {
   isError: boolean;
 }
 
-export interface CustomMessage {
-  customType: string;
-  content: string;
-  details?: Record<string, unknown>;
-}
-
 export interface PiSessionResult {
   /** Raw stdout (JSON lines) */
   rawOutput: string;
@@ -41,13 +35,11 @@ export interface PiSessionResult {
   exitCode: number;
   /** Parsed tool results from the session */
   toolResults: ToolResult[];
-  /** Parsed custom messages from the session */
-  customMessages: CustomMessage[];
   /** Get the text content from the first tool result */
   getToolOutput(): string | null;
-  /** Get the first file-map custom message content */
+  /** Get the file map from the first tool result (inline in content) */
   getFileMapOutput(): string | null;
-  /** Get combined tool output and file map (for backward compat) */
+  /** Get combined tool output and file map */
   getCombinedOutput(): string | null;
   /** Cleanup function */
   cleanup: () => Promise<void>;

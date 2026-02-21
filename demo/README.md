@@ -2,6 +2,34 @@
 
 This document contains the results of side-by-side comparisons between sessions with `pi-read-map` installed and sessions without it, when analyzing massive source files.
 
+## What Changed in v1.3.0
+
+- File maps are now appended directly to the `read` tool result text (no separate custom `file-map` message).
+- This preserves true parallel tool execution and avoids skipped reads caused by steer-message interruption.
+- Directory reads now throw `EISDIR` and include inline fallback `ls` output.
+
+## Demo Workflow (Quick Repro)
+
+From the repo root:
+
+```bash
+npm run validate
+npm run test
+```
+
+In pi, run parallel reads against large demo files (for example):
+
+```text
+Read demo/assets/typescript/checker.ts and demo/assets/python/frame.py in parallel. Then compare their architecture at a high level.
+```
+
+Expected behavior in v1.3.0:
+
+- Each `read` result includes truncated content **plus inline map text** in the same tool result.
+- No separate `file-map` custom message appears.
+- Parallel reads complete without skipped-read recovery loops.
+- Reading a directory path throws `EISDIR` and includes inline fallback `ls` output.
+
 ## Demo Assets
 
 The `assets/` directory contains large, complex files from famous open-source projects for testing and demonstration:

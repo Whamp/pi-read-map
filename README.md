@@ -160,13 +160,16 @@ The extension intercepts `read` calls and decides:
 1. **Binary files** (images, audio, video, archives, etc.): Delegate to built-in read tool
 2. **Small files** (≤2,000 lines, ≤50 KB): Delegate to built-in read tool
 3. **Targeted reads** (offset or limit provided): Delegate to built-in read tool
-4. **Large files:**
+4. **Directory paths**: Run built-in `ls` and throw an `EISDIR` error that includes inline fallback directory output.
+5. **Large files:**
    - Call built-in read for the first chunk
    - Detect language from file extension
    - Dispatch to a mapper (language-specific → ctags → grep fallback)
    - Format with budget enforcement
    - Cache the map
-   - Send as a separate `file-map` message after `tool_result`
+   - Append the map text directly to the read tool's result block
+
+*Note on design:* Maps are inlined as raw text rather than sent as separate custom UI messages. While this sacrifices a dedicated TUI widget, it ensures true parallel tool execution. Custom messages interrupt parallel tool batches, causing skipped reads and forcing slow recovery loops. Inlining guarantees the LLM receives the map immediately in the same turn without breaking concurrency.
 
 ## Dependencies
 

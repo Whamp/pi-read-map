@@ -2,6 +2,19 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.3.0] - 2026-02-20
+
+### Changed
+
+- **Inline file maps**: Maps are now embedded directly in the `read` tool result text instead of being sent as separate `file-map` custom messages. This sacrifices the dedicated collapsible TUI widget but enables **true parallel tool execution**. Previously, custom messages interrupted parallel tool batches, causing skipped reads and forcing slow auto-recovery loops. Inlining guarantees the LLM receives the map immediately in the same turn, drastically speeding up parallel reads and preventing strict API conversation ordering errors (400 Bad Request).
+- Removed the `read-recovery` mechanism since parallel reads are no longer skipped by map generation.
+- Removed `@mariozechner/pi-tui` dependency since custom message rendering is no longer needed.
+
+### Fixed
+
+- Directory reads now throw an `EISDIR` error with inline `ls` fallback text reliably. The fallback listing is preserved in thrown errors instead of being swallowed by the internal `try/catch` path.
+- npm tarballs now exclude local scratch artifacts (`*.patch`, `*.orig`, `fix-*.js`, etc.) via `.npmignore`, preventing accidental publication of local debug/review files.
+
 ## [1.2.5] - 2026-02-15
 
 ### Fixed

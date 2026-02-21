@@ -16,22 +16,12 @@ import { spawn } from "node:child_process";
 import { mkdir, rm, writeFile } from "node:fs/promises";
 import { join, resolve } from "node:path";
 
-import type {
-  CustomMessage,
-  PiSessionOptions,
-  PiSessionResult,
-  ToolResult,
-} from "./types.js";
+import type { PiSessionOptions, PiSessionResult, ToolResult } from "./types.js";
 
 import { FILE_MAP_DELIMITER } from "./constants.js";
 
 export { FILE_MAP_DELIMITER } from "./constants.js";
-export type {
-  CustomMessage,
-  PiSessionOptions,
-  PiSessionResult,
-  ToolResult,
-} from "./types.js";
+export type { PiSessionOptions, PiSessionResult, ToolResult } from "./types.js";
 
 /** Project root directory */
 const PROJECT_ROOT = resolve(import.meta.dirname, "../..");
@@ -46,14 +36,13 @@ const DEFAULT_PROVIDER = "zai";
 const DEFAULT_MODEL = "glm-4.5";
 
 /**
- * Parse JSON lines output to extract tool results and custom messages.
+ * Parse JSON lines output to extract tool results.
+ * File maps are now inline in the tool result content (not separate messages).
  */
 function parseSessionOutput(jsonLines: string): {
   toolResults: ToolResult[];
-  customMessages: CustomMessage[];
 } {
   const toolResults: ToolResult[] = [];
-  const customMessages: CustomMessage[] = [];
 
   for (const line of jsonLines.split("\n")) {
     if (!line.trim()) {
@@ -74,20 +63,6 @@ function parseSessionOutput(jsonLines: string): {
               isError: msg.isError || false,
             });
           }
-          // Capture custom messages (like file-map)
-          if (msg.role === "custom" && msg.customType) {
-            customMessages.push({
-              customType: msg.customType,
-              content:
-                typeof msg.content === "string"
-                  ? msg.content
-                  : msg.content
-                      ?.filter((c: { type: string }) => c.type === "text")
-                      .map((c: { text: string }) => c.text)
-                      .join("\n") || "",
-              details: msg.details,
-            });
-          }
         }
       }
     } catch {
@@ -95,7 +70,7 @@ function parseSessionOutput(jsonLines: string): {
     }
   }
 
-  return { toolResults, customMessages };
+  return { toolResults };
 }
 
 /**
@@ -176,13 +151,9 @@ export function runPiSession(
         const timeoutError = new Error("Pi session timed out");
         reject(timeoutError);
       } else {
-        const { toolResults, customMessages } = parseSessionOutput(stdout);
+        const { toolResults } = parseSessionOutput(stdout);
         const [firstResult] = toolResults;
-        const fileMapMessage = customMessages.find(
-          (m) => m.customType === "file-map"
-        );
 
-        // Extract values for use in methods
         const getToolOutputFn = (): string | null => {
           if (!firstResult) {
             return null;
@@ -193,15 +164,30 @@ export function runPiSession(
           return textContent?.text ?? null;
         };
 
-        const getFileMapOutputFn = (): string | null =>
-          fileMapMessage?.content ?? null;
+        // File maps are now inline in the tool result content.
+        // Extract the map portion by looking for the delimiter.
+        const getFileMapOutputFn = (): string | null => {
+          // Scan all tool results (important for parallel reads where the first result might be small)
+          for (const tr of toolResults) {
+            for (const block of tr.content) {
+              if (
+                block.type === "text" &&
+                block.text &&
+                block.text.includes(FILE_MAP_DELIMITER) &&
+                block.text.includes("File Map:")
+              ) {
+                return block.text;
+              }
+            }
+          }
+          return null;
+        };
 
         resolve({
           rawOutput: stdout,
           stderr,
           exitCode: code ?? 0,
           toolResults,
-          customMessages,
           getToolOutput: getToolOutputFn,
           getFileMapOutput: getFileMapOutputFn,
           getCombinedOutput(): string | null {

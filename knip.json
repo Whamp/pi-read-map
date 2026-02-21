@@ -5,7 +5,6 @@
   "ignore": ["scripts/**", "tests/fixtures/**"],
   "ignoreDependencies": [
     "@factory/eslint-plugin",
-    "ultracite",
-    "@mariozechner/pi-tui"
+    "ultracite"
   ]
 }

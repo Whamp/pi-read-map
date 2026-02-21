@@ -2,10 +2,7 @@
  * E2E Test: Large File Map Generation
  *
  * Verifies that reading a file exceeding thresholds (>2000 lines OR >50KB)
- * produces a structural map alongside the truncated content.
- *
- * These tests verify the ACTUAL TOOL OUTPUT and FILE MAP MESSAGE.
- * The map is now sent as a separate custom message (file-map type).
+ * produces a structural map inline in the tool result content.
  *
  * Model: glm-4.7 (smartest) - Python files have largest context
  */
@@ -47,18 +44,13 @@ describe("e2e: read large file", () => {
       timeout: 90_000,
     });
 
-    // Get the file map message (now sent separately)
+    // File map is now inline in the tool result
     const mapOutput = result.getFileMapOutput();
     expect(mapOutput).not.toBeNull();
 
     if (mapOutput) {
-      // Verify the file map markers are in the map output
       expect(hasFileMap(mapOutput)).toBe(true);
-
-      // Verify the box delimiter is present
       expect(mapOutput).toContain(FILE_MAP_DELIMITER);
-
-      // Verify "File Map:" header is present
       expect(mapOutput).toContain("File Map:");
     }
 
@@ -76,11 +68,8 @@ describe("e2e: read large file", () => {
     expect(mapOutput).not.toBeNull();
 
     if (mapOutput) {
-      // The map header should contain file info
       expect(mapOutput).toContain("processor.py");
       expect(mapOutput).toContain("Python");
-
-      // Should contain line count and size
       expect(mapOutput).toMatch(/\d+\s*(lines|,)/);
       expect(mapOutput).toMatch(/\d+\s*KB/);
     }
@@ -95,16 +84,12 @@ describe("e2e: read large file", () => {
       timeout: 90_000,
     });
 
-    // Truncation notice should be in the tool output (content) OR
-    // the file map should be present (indicating truncation occurred)
     const toolOutput = result.getToolOutput();
     const mapOutput = result.getFileMapOutput();
 
-    // If there's a tool output, it may have truncation info
-    // OR if there's a file map, that indicates truncation occurred
+    // Either truncation info in tool output or a file map (indicating truncation)
     expect(toolOutput !== null || mapOutput !== null).toBe(true);
 
-    // File map presence indicates truncation happened
     if (mapOutput) {
       expect(mapOutput).toContain("File Map:");
     }
@@ -123,14 +108,11 @@ describe("e2e: read large file", () => {
     expect(mapOutput).not.toBeNull();
 
     if (mapOutput) {
-      // Should contain line number ranges in [start-end] or [line] format
+      // Line number ranges in [start-end] or [line] format
       expect(mapOutput).toMatch(/\[\d+(-\d+)?\]/);
-
-      // Should contain class definitions from processor.py
+      // Class definitions from processor.py
       expect(mapOutput).toMatch(/class\s+\w+/);
-
-      // Should contain method names like __init__, process, validate
-      // The map format uses "name: [lines]" not "def name"
+      // Method names
       expect(mapOutput).toMatch(/__init__|process|validate/);
     }
 
@@ -148,7 +130,6 @@ describe("e2e: read large file", () => {
     expect(mapOutput).not.toBeNull();
 
     if (mapOutput) {
-      // Should have guidance footer
       expect(hasTargetedReadGuidance(mapOutput)).toBe(true);
     }
 
@@ -156,7 +137,6 @@ describe("e2e: read large file", () => {
   });
 
   it("produces map for generated large Python file", async () => {
-    // Generate a large file dynamically
     const lines: string[] = ["# Large Python file for E2E testing", ""];
 
     for (let i = 0; i < 800; i++) {
@@ -179,13 +159,8 @@ describe("e2e: read large file", () => {
     expect(mapOutput).not.toBeNull();
 
     if (mapOutput) {
-      // Should have a file map
       expect(hasFileMap(mapOutput)).toBe(true);
-
-      // Should contain our generated functions
       expect(mapOutput).toContain("function_0");
-
-      // Should identify as Python
       expect(mapOutput).toContain("Python");
     }
 
